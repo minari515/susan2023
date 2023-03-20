@@ -1,0 +1,15 @@
+# if文． mod_rewriteが使えるか確認
+<IfModule mod_rewrite.c>
+  # mod_rewriteを有効にする
+  RewriteEngine On
+  # リダイレクト先のベースURL．ドキュメントルートのパスを指定
+  RewriteBase /
+  # ダイレクトにindex.phpを指定した場合は何もしない[コレ以降の処理をしない]
+  RewriteRule ^index\.php$ - [L]
+  # RewriteRuleを適用する条件 ファイルシステムのファイルパスに対して ファイルが存在しない場合
+  RewriteCond %{REQUEST_FILENAME} !-f
+  # かつ，RewriteRuleを適用する条件 ファイルシステムのファイルパスに対して ディレクトリが存在しない場合
+  RewriteCond %{REQUEST_FILENAME} !-d
+  # apiのパスが前方一致していた場合，index.phpにrewriteする
+  RewriteRule . /api/v2/index.php [L] # 開発用
+</IfModule>

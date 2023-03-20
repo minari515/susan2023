@@ -1,0 +1,35 @@
+{
+	// デフォルトのフォーマッタを prettier に設定
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	// ファイル保存時、prettier による自動フォーマット
+	"editor.formatOnSave": true,
+	// ファイル保存時、ESLint による自動フォーマット
+	"editor.codeActionsOnSave": {
+		"source.fixAll": true
+	},
+	// コード補完高速化
+	"editor.quickSuggestions": {
+		"strings": true
+	},
+	"css.validate": false,
+	"editor.inlineSuggest.enabled": true,
+	// tailwindCSSの補完対象
+	"tailwindCSS.includeLanguages": {
+		"typescriptreact": "html"
+	},
+	"tailwindCSS.classAttributes": ["className"],
+	"cSpell.words": ["liff"],
+	"cSpell.ignorePaths": [
+		"package-lock.json",
+		"node_modules",
+		"vscode-extension",
+		".git/objects",
+		".vscode",
+		".vscode-insiders",
+		"yarn.lock"
+	],
+
+	"intelephense.environment.phpVersion": "5.6.0",
+	"files.autoSave": "afterDelay",
+	"php.validate.executablePath": "./php.sh"
+}

@@ -1,0 +1,16 @@
+{
+	"presets": ["next/babel"],
+	"plugins": [
+		[
+			"module-resolver",
+			{
+				"extensions": [".ts", ".tsx"],
+				"root": ["."],
+				"alias": {
+					"@": "./src"
+				}
+			}
+		],
+		"inline-react-svg"
+	]
+}
