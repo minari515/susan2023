@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors',1);
 
-require_once(dirname(__FILE__)."/../vendor/autoload.php");
+require_once(dirname(__FILE__)."/../../../vendor/autoload.php");
 use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__."/../../../"); //.envを読み込む
 $dotenv->load();

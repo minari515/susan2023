@@ -7,48 +7,48 @@ const calcLectureNumber = (date: Date) => {
 	/**
 	 * 第3Qか第4Qかどうか
 	 */
-	const isAorB = date <= new Date(2022, 12 - 1, 6) ? "A" : "B";
+	const isAorB = date <= new Date(2023, 6 - 1, 12) ? "A" : "B";
 
 	// TODO: より効率的な書き方を考える
 
 	if (isAorB === "A") {
-		// 第3Qの場合
-		if (date <= new Date(2022, 10 - 1, 12)) {
+		// 第1Qの場合
+		if (date <= new Date(2023, 4 - 1, 19)) {
 			return { type: isAorB, number: 1 };
-		} else if (date <= new Date(2022, 10 - 1, 19)) {
+		} else if (date <= new Date(2023, 4 - 1, 26)) {
 			return { type: isAorB, number: 2 };
-		} else if (date <= new Date(2022, 10 - 1, 26)) {
+		} else if (date <= new Date(2023, 5 - 1, 10)) {
 			return { type: isAorB, number: 3 };
-		} else if (date <= new Date(2022, 11 - 1, 9)) {
+		} else if (date <= new Date(2023, 5 - 1, 17)) {
 			return { type: isAorB, number: 4 };
-		} else if (date <= new Date(2022, 11 - 1, 16)) {
+		} else if (date <= new Date(2023, 5 - 1, 24)) {
 			return { type: isAorB, number: 5 };
-		} else if (date <= new Date(2022, 11 - 1, 23)) {
+		} else if (date <= new Date(2023, 5 - 1, 31)) {
 			return { type: isAorB, number: 6 };
-		} else if (date <= new Date(2022, 11 - 1, 30)) {
+		} else if (date <= new Date(2023, 6 - 1, 7)) {
 			return { type: isAorB, number: 7 };
-		} else if (date <= new Date(2022, 12 - 1, 5)) {
+		} else if (date <= new Date(2023, 6 - 1, 14)) {
 			return { type: isAorB, number: 8 };
 		} else {
 			return { type: undefined, number: undefined };
 		}
 	} else {
-		// 第4Qの場合
-		if (date <= new Date(2022, 12 - 1, 14)) {
+		// 第2Qの場合
+		if (date <= new Date(2023, 6 - 1, 21)) {
 			return { type: isAorB, number: 1 };
-		} else if (date <= new Date(2022, 12 - 1, 21)) {
+		} else if (date <= new Date(2023, 6 - 1, 28)) {
 			return { type: isAorB, number: 2 };
-		} else if (date <= new Date(2022, 12 - 1, 28)) {
+		} else if (date <= new Date(2023, 7 - 1, 5)) {
 			return { type: isAorB, number: 3 };
-		} else if (date <= new Date(2023, 1 - 1, 4)) {
+		} else if (date <= new Date(2023, 7 - 1, 12)) {
 			return { type: isAorB, number: 4 };
-		} else if (date <= new Date(2023, 1 - 1, 11)) {
+		} else if (date <= new Date(2023, 7 - 1, 19)) {
 			return { type: isAorB, number: 5 };
-		} else if (date <= new Date(2023, 1 - 1, 18)) {
+		} else if (date <= new Date(2023, 7 - 1, 26)) {
 			return { type: isAorB, number: 6 };
-		} else if (date <= new Date(2023, 1 - 1, 25)) {
+		} else if (date <= new Date(2023, 8 - 1, 2)) {
 			return { type: isAorB, number: 7 };
-		} else if (date <= new Date(2023, 2 - 1, 4)) {
+		} else if (date <= new Date(2023, 8 - 1, 9)) {
 			return { type: isAorB, number: 8 };
 		} else {
 			return { type: undefined, number: undefined };
