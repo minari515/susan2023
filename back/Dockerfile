@@ -27,4 +27,4 @@ RUN cd /etc/apache2/mods-enabled \
 
 COPY . /var/www/html
 # php5.6でも動作するcomposerのバージョンを指定している
-# COPY --from=composer:1.6.3 /usr/bin/composer /usr/bin/composer # Apple Silicon環境だと動かない？
+COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer

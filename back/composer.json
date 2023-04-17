@@ -1,6 +1,11 @@
 {
-    "name": "root/html",
-    "require": {
-        "vlucas/phpdotenv": "^4.2"
+  "name": "root/html",
+  "config": {
+    "platform": {
+      "php": "5.6.40"
     }
+  },
+  "require": {
+    "vlucas/phpdotenv": "^4.2"
+  }
 }

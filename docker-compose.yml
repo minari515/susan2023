@@ -37,7 +37,7 @@ services:
   mysql:
     container_name: mysql
     # for Apple Silicon Mac
-    platform: linux/arm64/v8
+    # platform: linux/arm64/v8
     build:
       context: ./mysql
       dockerfile: Dockerfile

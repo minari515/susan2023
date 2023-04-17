@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors',1);
 
-//header("Access-Control-Allow-Origin: https://susan-xi.vercel.app"); //本番用
+//header("Access-Control-Allow-Origin: https://susan2023-five.vercel.app"); //本番用
 header("Access-Control-Allow-Origin: http://localhost:3000"); //開発用
 
 include(dirname( __FILE__)."/../database.php");

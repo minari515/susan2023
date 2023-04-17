@@ -31,5 +31,6 @@
 
 	"intelephense.environment.phpVersion": "5.6.0",
 	"files.autoSave": "afterDelay",
-	"php.validate.executablePath": "./php.sh"
+	"php.validate.executablePath": "./php.sh",
+	"editor.tabSize": 2
 }
