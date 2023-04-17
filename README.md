@@ -164,6 +164,13 @@ docker-compose build
 docker-compose up -d
 ```
 
+- composerがインストールされていない場合は下記を実行．
+
+```Shell
+docker-compose exec back bash
+composer install
+```
+
 - (開発中ファイルの変更などがキャッシュビルドによって反映されない場合は以下のコマンドを使用)
 
 ```Shell
