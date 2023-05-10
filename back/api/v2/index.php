@@ -2,7 +2,7 @@
 ini_set('display_errors',1);
 
 //header("Access-Control-Allow-Origin: https://susan2023-five.vercel.app"); //本番用
-header("Access-Control-Allow-Origin: http://localhost:3000"); //開発用
+header("Access-Control-Allow-Origin: *"); //開発用
 
 include(dirname( __FILE__)."/../database.php");
 
@@ -34,11 +34,11 @@ if(file_exists($file_path)){
   }else{
     $response_code = $object->code;
   };
-  
+
   header("Content-Type: application/json; charset=utf-8", true, $response_code);
   echo $response;
 
 }else{ //ファイルが無ければエラー処理
   header("HTTP/1.1 404 Not Found");
   exit;
-} 
+}
