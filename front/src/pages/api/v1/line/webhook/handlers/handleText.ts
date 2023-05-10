@@ -61,7 +61,7 @@ const handleText = async (
 					text:
 						type && number
 							? `データサイエンス入門${type}第${number}回講義の質問を受付中です！256字未満で具体的に書いてもらえる？😊`
-							: "質問を256字未満で具体的に書いてもらえる？😊",
+							: "質問を2万字未満で具体的に書いてもらえる？😊",
 				} as TextMessage,
 			];
 			break;
