@@ -1,6 +1,6 @@
 import type { DialogflowContext } from "@/types/models";
 import type { postMessageLogParams } from "@/types/payloads";
-import type {
+import {
 	Message,
 	TextEventMessage,
 	TextMessage,
@@ -43,6 +43,41 @@ const handleText = async (
 		},
 	];
 
+	// gpt-3.5-turboで解答を生成
+	const url = 'https://api.line.me/v2/bot/message/reply';
+  const prompt = message.text;
+	const requestOptions = {
+    "method": "post",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer "+ process.env.OPENAI_APIKEY
+    },
+    "payload": JSON.stringify({
+      "model": "gpt-3.5-turbo",
+      "messages": [
+         {"role": "user", "content": prompt}]
+    })
+  }
+	const response = UrlFetchApp.fetch("https://api.openai.com/v1/chat/completions", requestOptions);
+
+  const responseText = response.getContentText();
+  const json = JSON.parse(responseText);
+  const text = json['choices'][0]['message']['content'].trim();
+	UrlFetchApp.fetch(url, {
+    'headers': {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ' + process.env.LINE_ACCESS_TOKEN,
+    },
+    'method': 'post',
+    'payload': JSON.stringify({
+      'replyToken': replyToken,
+      'messages': [{
+        'type': 'text',
+        'text': text,
+      }]
+    })
+  });
+	
 	// Dialogflowにテキストを送信・解析結果から応答を生成する
 	/**
 	 * Dialogflowの解析結果
