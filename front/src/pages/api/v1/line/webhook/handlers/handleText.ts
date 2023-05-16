@@ -9,7 +9,7 @@ import {
 } from "@line/bot-sdk/lib/types";
 import { lineClient } from "@/pages/api/v1/line/libs";
 import { detectIntent } from "@/pages/api/v1/dialogflow/sessions/detectIntent";
-import { detectIntentgpt } from "@/pages/api/v1/dialogflow/sessions/detectintentgpt";
+// import { detectIntentgpt } from "@/pages/api/v1/dialogflow/sessions/detectintentgpt";
 import {
   autoAnswerFlexMessage,
   checkInputNewQuestion,
