@@ -43,6 +43,7 @@ const handleText = async (
       text: "すみません，よくわかりませんでした🤔",
     },
   ];
+  console.log(replyMessage);
 
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
