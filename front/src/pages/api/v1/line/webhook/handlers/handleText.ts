@@ -97,7 +97,6 @@ const handleText = async (
    * Dialogflowの解析結果
    */
   const nlpResult = await detectIntent(message.id, message.text, contexts);
-  console.log(nlpResult.queryResult);
   if (!nlpResult.queryResult) throw new Error("queryResultが存在しません");
 
   switch (nlpResult.queryResult.action) {
@@ -110,7 +109,7 @@ const handleText = async (
           type: "text",
           text:
             type && number
-              ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊`
+              ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊${nlpResult.queryResult}`
               : "質問を200字未満で具体的に書いてもらえる？😊",
         } as TextMessage,
       ];
