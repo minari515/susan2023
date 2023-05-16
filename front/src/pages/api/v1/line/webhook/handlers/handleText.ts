@@ -97,6 +97,7 @@ const handleText = async (
    * Dialogflowの解析結果
    */
   const nlpResult = await detectIntent(message.id, message.text, contexts);
+  console.log(nlpResult.queryResult);
   if (!nlpResult.queryResult) throw new Error("queryResultが存在しません");
 
   switch (nlpResult.queryResult.action) {
