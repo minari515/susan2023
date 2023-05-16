@@ -9,6 +9,7 @@ import {
 } from "@line/bot-sdk/lib/types";
 import { lineClient } from "@/pages/api/v1/line/libs";
 import { detectIntent } from "@/pages/api/v1/dialogflow/sessions/detectIntent";
+import { detectIntentgpt } from "@/pages/api/v1/dialogflow/sessions/detectintentgpt";
 import {
   autoAnswerFlexMessage,
   checkInputNewQuestion,
@@ -43,88 +44,40 @@ const handleText = async (
       text: "すみません，よくわかりませんでした🤔",
     },
   ];
-  console.log(replyMessage);
-
-  // const configuration = new Configuration({
-  //   apiKey: process.env.OPENAI_API_KEY,
-  // });
-  // const openai = new OpenAIApi(configuration);
-
-  // (async () => {
-  //   const completion = await openai.createChatCompletion({
-  //     model: "gpt-3.5-turbo",
-  //     messages: [{ role: "user", content: "ChatGPT について教えて" }],
-  //   });
-  //   console.log(completion.data.choices[0].message);
-  // })();
-  // gpt-3.5-turboで解答を生成
-  // const url = 'https://api.line.me/v2/bot/message/reply';
-  // const prompt = message.text;
-  // const requestOptions = {
-  //   "method": "post",
-  //   "headers": {
-  //     "Content-Type": "application/json",
-  //     "Authorization": "Bearer "+ process.env.OPENAI_APIKEY
-  //   },
-  //   "payload": JSON.stringify({
-  //     "model": "gpt-3.5-turbo",
-  //     "messages": [
-  //       {"role": "user", "content": prompt}]
-  //   })
-  // }
-  // const response = UrlFetchApp.fetch("https://api.openai.com/v1/chat/completions", requestOptions);
-
-  // const responseText = response.getContentText();
-  // const json = JSON.parse(responseText);
-  // const text = json['choices'][0]['message']['content'].trim();
-  // UrlFetchApp.fetch(url, {
-  //   'headers': {
-  //     'Content-Type': 'application/json; charset=UTF-8',
-  //     'Authorization': 'Bearer ' + process.env.LINE_ACCESS_TOKEN,
-  //   },
-  //   'method': 'post',
-  //   'payload': JSON.stringify({
-  //     'replyToken': replyToken,
-  //     'messages': [{
-  //       'type': 'text',
-  //       'text': text,
-  //     }]
-  //   })
-  // });
 
   // Dialogflowにテキストを送信・解析結果から応答を生成する
   /**
    * Dialogflowの解析結果
    */
   const nlpResult = await detectIntent(message.id, message.text, contexts);
+  // replyMessage = nlpResult
   if (!nlpResult.queryResult) throw new Error("queryResultが存在しません");
+  const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+  const openai = new OpenAIApi(configuration);
+  (async () => {
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: "ChatGPT について教えて" }],
+    });
+    console.log(completion.data.choices[0].message);
+  })();
 
   switch (nlpResult.queryResult.action) {
     case "QuestionStart": // input:「質問があります」
     case "AskTheTeacherDirectly": // input:「(質問を)書き直す」
       // 質問文の入力を促すメッセージを返す
       const { type, number } = calcLectureNumber(new Date());
-      const configuration = new Configuration({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-      const openai = new OpenAIApi(configuration);
-
-      (async () => {
-        const completion = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: "ChatGPT について教えて" }],
-        });
-        console.log(completion.data.choices[0].message);
-        replyMessage = [
-          {
-            type: "text",
-            text:
-              type && number
-                ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊${completion.data.choices[0].message}`
-                : "質問を200字未満で具体的に書いてもらえる？😊",
-          } as TextMessage,
-        ];
-      })();
+      replyMessage = [
+        {
+          type: "text",
+          text:
+            type && number
+              ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊${nlpResult.queryResult}`
+              : "質問を200字未満で具体的に書いてもらえる？😊",
+        } as TextMessage,
+      ];
       break;
 
     case "AnswerToTheQuestion": // 自動回答
