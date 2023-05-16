@@ -45,18 +45,18 @@ const handleText = async (
   ];
   console.log(replyMessage);
 
-  // const configuration = new Configuration({
-  //   apiKey: process.env.OPENAI_API_KEY,
-  // });
-  // const openai = new OpenAIApi(configuration);
+  const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+  const openai = new OpenAIApi(configuration);
 
-  // (async () => {
-  //   const completion = await openai.createChatCompletion({
-  //     model: "gpt-3.5-turbo",
-  //     messages: [{ role: "user", content: "ChatGPT について教えて" }],
-  //   });
-  //   console.log(completion.data.choices[0].message);
-  // })();
+  (async () => {
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: "ChatGPT について教えて" }],
+    });
+    console.log(completion.data.choices[0].message);
+  })();
   // gpt-3.5-turboで解答を生成
   // const url = 'https://api.line.me/v2/bot/message/reply';
   // const prompt = message.text;
