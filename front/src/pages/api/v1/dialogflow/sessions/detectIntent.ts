@@ -12,35 +12,36 @@ const languageCode = "ja";
  * @returns Dialogflowからのレスポンス(NLP解析結果)
  */
 export const detectIntent = async (
-	uniqueId: string,
-	inputText: string,
-	contexts: DialogflowContext[]
+  uniqueId: string,
+  inputText: string,
+  contexts: DialogflowContext[]
 ) => {
-	const sessionId = uniqueId;
-	const sessionPath = sessionsClient.projectAgentSessionPath(
-		process.env.DIALOGFLOW_PROJECT_ID!,
-		sessionId
-	);
+  console.log("こんそーるろぐ");
+  const sessionId = uniqueId;
+  const sessionPath = sessionsClient.projectAgentSessionPath(
+    process.env.DIALOGFLOW_PROJECT_ID!,
+    sessionId
+  );
 
-	const inputContexts = contexts.reduce((acc, cur) => {
-		if (!cur.name || cur.name == "__system_counters__") return acc;
-		cur.name = sessionPath + "/contexts/" + cur.name;
-		acc.push(cur);
-		return acc;
-	}, [] as DialogflowContext[]);
+  const inputContexts = contexts.reduce((acc, cur) => {
+    if (!cur.name || cur.name == "__system_counters__") return acc;
+    cur.name = sessionPath + "/contexts/" + cur.name;
+    acc.push(cur);
+    return acc;
+  }, [] as DialogflowContext[]);
 
-	const request = {
-		session: sessionPath,
-		queryInput: {
-			text: {
-				text: inputText,
-				languageCode: languageCode,
-			},
-		},
-		queryParams: {
-			contexts: inputContexts.length > 0 ? inputContexts : null,
-		},
-	};
-	const [response] = await sessionsClient.detectIntent(request);
-	return response;
+  const request = {
+    session: sessionPath,
+    queryInput: {
+      text: {
+        text: inputText,
+        languageCode: languageCode,
+      },
+    },
+    queryParams: {
+      contexts: inputContexts.length > 0 ? inputContexts : null,
+    },
+  };
+  const [response] = await sessionsClient.detectIntent(request);
+  return response;
 };
