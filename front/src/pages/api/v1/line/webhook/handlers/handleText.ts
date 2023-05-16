@@ -58,13 +58,16 @@ const handleText = async (
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
   });
+  console.log("1");
   const openai = new OpenAIApi(configuration);
+  console.log("2");
   const response = await openai.createCompletion({
     model: "text-davinci-003",
     prompt: "Say this is a test",
     temperature: 0,
     max_tokens: 7,
   });
+  console.log("3");
   console.log(response);
   // const configuration = new Configuration({
   //   apiKey: process.env.OPENAI_API_KEY,
