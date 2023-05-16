@@ -55,31 +55,29 @@ const handleText = async (
   if (!nlpResult.queryResult) throw new Error("queryResultが存在しません");
 
   // // 試し書き
-  const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
   console.log("1");
-  const openai = new OpenAIApi(configuration);
+  const apiKey = process.env.OPENAI_API_KEY;
   console.log("2");
-  const response = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt: "Say this is a test",
-    temperature: 0,
-    max_tokens: 7,
+  const configuration = new Configuration({
+    apiKey: apiKey,
   });
   console.log("3");
-  console.log(response);
-  // const configuration = new Configuration({
-  //   apiKey: process.env.OPENAI_API_KEY,
-  // });
-  // const openai = new OpenAIApi(configuration);
-  // (async () => {
-  //   const completion = await openai.createChatCompletion({
-  //     model: "gpt-3.5-turbo",
-  //     messages: [{ role: "user", content: "ChatGPT について教えて" }],
-  //   });
-  //   console.log(completion.data.choices[0].message);
-  // })();
+  const openai = new OpenAIApi(configuration);
+  console.log("4");
+  try {
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: message.text }],
+      temperature: 0.7, // 応答の多様性（0.0から1.0の間の値）
+    });
+    console.log("5");
+
+    if (response.data.choices && response.data.choices.length > 0) {
+      return response.data.choices[0].message;
+    }
+  } catch (error) {
+    console.error("GPTのリクエストエラー:", error);
+  }
 
   switch (nlpResult.queryResult.action) {
     case "QuestionStart": // input:「質問があります」
