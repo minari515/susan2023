@@ -104,15 +104,27 @@ const handleText = async (
     case "AskTheTeacherDirectly": // input:「(質問を)書き直す」
       // 質問文の入力を促すメッセージを返す
       const { type, number } = calcLectureNumber(new Date());
-      replyMessage = [
-        {
-          type: "text",
-          text:
-            type && number
-              ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊${nlpResult.queryResult}`
-              : "質問を200字未満で具体的に書いてもらえる？😊",
-        } as TextMessage,
-      ];
+      const configuration = new Configuration({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+      const openai = new OpenAIApi(configuration);
+
+      (async () => {
+        const completion = await openai.createChatCompletion({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: "ChatGPT について教えて" }],
+        });
+        console.log(completion.data.choices[0].message);
+        replyMessage = [
+          {
+            type: "text",
+            text:
+              type && number
+                ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊${completion.data.choices[0].message}`
+                : "質問を200字未満で具体的に書いてもらえる？😊",
+          } as TextMessage,
+        ];
+      })();
       break;
 
     case "AnswerToTheQuestion": // 自動回答
