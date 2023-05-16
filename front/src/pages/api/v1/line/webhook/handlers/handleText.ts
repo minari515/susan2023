@@ -44,6 +44,7 @@ const handleText = async (
       text: "すみません，よくわかりませんでした🤔",
     },
   ];
+  console.log(replyMessage)
 
   // Dialogflowにテキストを送信・解析結果から応答を生成する
   /**
@@ -52,6 +53,8 @@ const handleText = async (
   const nlpResult = await detectIntent(message.id, message.text, contexts);
   // replyMessage = nlpResult
   if (!nlpResult.queryResult) throw new Error("queryResultが存在しません");
+  
+  // 試し書き
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
   });
