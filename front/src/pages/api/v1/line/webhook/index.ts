@@ -6,7 +6,7 @@ import type {
   WebhookEvent,
 } from "@line/bot-sdk/lib/types";
 import { SignatureValidationFailed } from "@line/bot-sdk";
-import { handleFollow, handleTextgpt } from "./handlers";
+import { handleFollow, handleText, handleTextgpt } from "./handlers";
 import { middleware, runMiddleware, replyText, pickContextId } from "../libs";
 import { getLatestContexts, postMessageLog } from "../libs/connectDB";
 
