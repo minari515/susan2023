@@ -56,11 +56,13 @@ const handleText = async (
 
   // // 試し書き
   const apiKey = process.env.OPENAI_API_KEY;
-  let gptmessage = "デバッグ";
+  let gptmessage = "1";
   const configuration = new Configuration({
     apiKey: apiKey,
   });
+  gptmessage = "2";
   const openai = new OpenAIApi(configuration);
+  gptmessage = "3";
   try {
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
