@@ -37,11 +37,13 @@ const handleTextgpt = async (
     apiKey: apiKey,
   });
   const openai = new OpenAIApi(configuration);
+  console.log(openai);
   try {
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
       messages: [{ role: "assistant", content: message.text }],
     });
+    console.log(response);
 
     if (response.data.choices && response.data.choices.length > 0) {
       if (response.data.choices[0].message) {
