@@ -30,6 +30,8 @@ const handleTextgpt = async (
   const apiKey = process.env.OPENAI_API_KEY;
   if (apiKey){
     console.log("true")
+  }else{
+    console.log("false")
   }
   // const configuration = new Configuration({
   //   apiKey: apiKey,
