@@ -42,7 +42,6 @@ const handleText = async (
       text: "すみません，よくわかりませんでした🤔",
     },
   ];
-  console.log(replyMessage);
 
   // Dialogflowにテキストを送信・解析結果から応答を生成する
   /**
