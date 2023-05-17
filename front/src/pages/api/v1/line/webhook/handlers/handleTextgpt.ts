@@ -25,6 +25,7 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
    * gptによる回答生成
    */
   const apiKey = process.env.OPENAI_API_KEY;
+  console.log(apiKey)
   if (apiKey) {
     console.log("true");
   } else {
