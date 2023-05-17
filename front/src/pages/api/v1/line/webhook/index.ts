@@ -128,9 +128,7 @@ const webhookEventHandler = async (
             // テキストメッセージ処理用のハンドラにイベントを渡し，結果を受け取る
             const _res = await handleTextgpt(
               message,
-              latestContexts,
               event.replyToken,
-              event.source
             );
             // res.messageAPIResponse = _res.messageAPIResponse;
             // res.messageLog = _res.messageLog;

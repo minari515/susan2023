@@ -1,10 +1,7 @@
-import type { DialogflowContext } from "@/types/models";
 import {
   Message,
   TextEventMessage,
   TextMessage,
-  EventSource,
-  StickerMessage,
 } from "@line/bot-sdk/lib/types";
 import { lineClient } from "@/pages/api/v1/line/libs";
 import { Configuration, OpenAIApi } from "openai";
@@ -14,9 +11,7 @@ import { Configuration, OpenAIApi } from "openai";
  */
 const handleTextgpt = async (
   message: TextEventMessage,
-  contexts: DialogflowContext[],
   replyToken: string,
-  source: EventSource
 ) => {
   /**
    * LINE botから返信するメッセージ配列
@@ -33,33 +28,36 @@ const handleTextgpt = async (
    * gptによる回答生成
    */
   const apiKey = process.env.OPENAI_API_KEY;
-  const configuration = new Configuration({
-    apiKey: apiKey,
-  });
-  const openai = new OpenAIApi(configuration);
-  console.log(openai);
-  try {
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "assistant", content: message.text }],
-    });
-    console.log(response);
-
-    if (response.data.choices && response.data.choices.length > 0) {
-      if (response.data.choices[0].message) {
-        const res = response.data.choices[0].message.content;
-        replyMessage = [
-          {
-            type: "text",
-            text: res,
-          } as TextMessage,
-        ];
-        console.log(replyMessage);
-      }
-    }
-  } catch (error) {
-    console.error("GPTのリクエストエラー:", error);
+  if (apiKey){
+    console.log("true")
   }
+  // const configuration = new Configuration({
+  //   apiKey: apiKey,
+  // });
+  // const openai = new OpenAIApi(configuration);
+  // console.log(openai);
+  // try {
+  //   const response = await openai.createChatCompletion({
+  //     model: "gpt-3.5-turbo",
+  //     messages: [{ role: "assistant", content: message.text }],
+  //   });
+  //   console.log(response);
+
+  //   if (response.data.choices && response.data.choices.length > 0) {
+  //     if (response.data.choices[0].message) {
+  //       const res = response.data.choices[0].message.content;
+  //       replyMessage = [
+  //         {
+  //           type: "text",
+  //           text: res,
+  //         } as TextMessage,
+  //       ];
+  //       console.log(replyMessage);
+  //     }
+  //   }
+  // } catch (error) {
+  //   console.error("GPTのリクエストエラー:", error);
+  // }
 
   /**
    * LINE botから返信した結果
