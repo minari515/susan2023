@@ -9,7 +9,6 @@ import {
 } from "@line/bot-sdk/lib/types";
 import { lineClient } from "@/pages/api/v1/line/libs";
 import { detectIntent } from "@/pages/api/v1/dialogflow/sessions/detectIntent";
-// import { detectIntentgpt } from "@/pages/api/v1/dialogflow/sessions/detectintentgpt";
 import {
   autoAnswerFlexMessage,
   checkInputNewQuestion,
@@ -24,7 +23,6 @@ import {
   postNewQuestion,
 } from "../../libs/connectDB";
 import notifyNewQuestion from "../../push/handlers/notifyNewQuestion";
-import { Configuration, OpenAIApi } from "openai";
 
 /**
  * LINE botのテキストメッセージを受け取ったときの処理
@@ -51,31 +49,7 @@ const handleText = async (
    * Dialogflowの解析結果
    */
   const nlpResult = await detectIntent(message.id, message.text, contexts);
-  // replyMessage = nlpResult
   if (!nlpResult.queryResult) throw new Error("queryResultが存在しません");
-
-  // // 試し書き
-  const apiKey = process.env.OPENAI_API_KEY;
-  let gptmessage = "1";
-  const configuration = new Configuration({
-    apiKey: apiKey,
-  });
-  gptmessage = "2";
-  const openai = new OpenAIApi(configuration);
-  gptmessage = "3";
-  try {
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "assistant", content: message.text }],
-    });
-
-    if (response.data.choices && response.data.choices.length > 0) {
-      gptmessage = "成功";
-      return response.data.choices[0].message;
-    }
-  } catch (error) {
-    console.error("GPTのリクエストエラー:", error);
-  }
 
   switch (nlpResult.queryResult.action) {
     case "QuestionStart": // input:「質問があります」
@@ -87,8 +61,8 @@ const handleText = async (
           type: "text",
           text:
             type && number
-              ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊${gptmessage}`
-              : "質問を200字未満で具体的に書いてもらえる？😊",
+              ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！256字未満で具体的に書いてもらえる？😊`
+              : "質問を256字未満で具体的に書いてもらえる？😊",
         } as TextMessage,
       ];
       break;

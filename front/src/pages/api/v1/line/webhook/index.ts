@@ -6,7 +6,7 @@ import type {
   WebhookEvent,
 } from "@line/bot-sdk/lib/types";
 import { SignatureValidationFailed } from "@line/bot-sdk";
-import { handleFollow, handleText } from "./handlers";
+import { handleFollow, handleText, handleTextgpt } from "./handlers";
 import { middleware, runMiddleware, replyText, pickContextId } from "../libs";
 import { getLatestContexts, postMessageLog } from "../libs/connectDB";
 
@@ -126,7 +126,7 @@ const webhookEventHandler = async (
             res.messageLog.message = `ごめんなさい．メッセージが長すぎます😫．256文字以下にしてください．(${message.text.length}文字でした)`;
           } else {
             // テキストメッセージ処理用のハンドラにイベントを渡し，結果を受け取る
-            const _res = await handleText(
+            const _res = await handleTextgpt(
               message,
               latestContexts,
               event.replyToken,
