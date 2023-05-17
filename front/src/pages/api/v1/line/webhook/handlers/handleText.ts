@@ -55,23 +55,20 @@ const handleText = async (
   if (!nlpResult.queryResult) throw new Error("queryResultが存在しません");
 
   // // 試し書き
+  const apiKey = process.env.OPENAI_API_KEY;
+  let gptmessage = "デバッグ";
+  const configuration = new Configuration({
+    apiKey: apiKey,
+  });
+  const openai = new OpenAIApi(configuration);
   try {
-    console.log("1");
-    const apiKey = process.env.OPENAI_API_KEY;
-    console.log("2");
-    const configuration = new Configuration({
-      apiKey: apiKey,
-    });
-    console.log("3");
-    const openai = new OpenAIApi(configuration);
-    console.log("4");
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: message.text }],
+      messages: [{ role: "assistant", content: message.text }],
     });
-    console.log("5");
 
     if (response.data.choices && response.data.choices.length > 0) {
+      gptmessage = "成功";
       return response.data.choices[0].message;
     }
   } catch (error) {
@@ -88,7 +85,7 @@ const handleText = async (
           type: "text",
           text:
             type && number
-              ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊${nlpResult.queryResult}`
+              ? `データサイエンス入門${type}第${number}回講義の質問を受付中です！226字未満で具体的に書いてもらえる？😊${gptmessage}`
               : "質問を200字未満で具体的に書いてもらえる？😊",
         } as TextMessage,
       ];
