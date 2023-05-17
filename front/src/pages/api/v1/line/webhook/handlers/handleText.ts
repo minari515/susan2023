@@ -55,20 +55,19 @@ const handleText = async (
   if (!nlpResult.queryResult) throw new Error("queryResultが存在しません");
 
   // // 試し書き
-  console.log("1");
-  const apiKey = process.env.OPENAI_API_KEY;
-  console.log("2");
-  const configuration = new Configuration({
-    apiKey: apiKey,
-  });
-  console.log("3");
-  const openai = new OpenAIApi(configuration);
-  console.log("4");
   try {
+    console.log("1");
+    const apiKey = process.env.OPENAI_API_KEY;
+    console.log("2");
+    const configuration = new Configuration({
+      apiKey: apiKey,
+    });
+    console.log("3");
+    const openai = new OpenAIApi(configuration);
+    console.log("4");
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: message.text }],
-      temperature: 0.7, // 応答の多様性（0.0から1.0の間の値）
     });
     console.log("5");
 
