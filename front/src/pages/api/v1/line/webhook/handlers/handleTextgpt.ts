@@ -29,7 +29,9 @@ const handleTextgpt = async (
   ];
   console.log(replyMessage);
 
-  // gptによる回答生成
+  /**
+   * gptによる回答生成
+   */
   const apiKey = process.env.OPENAI_API_KEY;
   const configuration = new Configuration({
     apiKey: apiKey,
@@ -42,7 +44,7 @@ const handleTextgpt = async (
     });
 
     if (response.data.choices && response.data.choices.length > 0) {
-      if (response.data.choices[0].message){
+      if (response.data.choices[0].message) {
         const res = response.data.choices[0].message.content;
         replyMessage = [
           {
@@ -50,6 +52,7 @@ const handleTextgpt = async (
             text: res,
           } as TextMessage,
         ];
+        console.log(replyMessage);
       }
     }
   } catch (error) {
