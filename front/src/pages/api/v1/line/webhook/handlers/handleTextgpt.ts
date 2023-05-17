@@ -9,10 +9,7 @@ import { Configuration, OpenAIApi } from "openai";
 /**
  * LINE botのテキストメッセージを受け取ったときの処理
  */
-const handleTextgpt = async (
-  message: TextEventMessage,
-  replyToken: string,
-) => {
+const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
   /**
    * LINE botから返信するメッセージ配列
    */
@@ -27,11 +24,11 @@ const handleTextgpt = async (
   /**
    * gptによる回答生成
    */
-  const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-  if (apiKey){
-    console.log("true")
-  }else{
-    console.log("false")
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (apiKey) {
+    console.log("true");
+  } else {
+    console.log("false");
   }
   // const configuration = new Configuration({
   //   apiKey: apiKey,
