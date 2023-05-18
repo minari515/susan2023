@@ -38,7 +38,35 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
   try {
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
-      messages: [{ role: "assistant", content: message.text }],
+      messages: [
+        { role:"system", content:
+          "あなたは送られてきた質問をカテゴリ別に分類する人です.\
+          送られる質問に対し，カテゴリ名のみを返してください．\
+          \
+          制約条件：\
+          ＊返信する内容はカテゴリ名のみで行ってください\
+          ＊chatbotの自身を示す一人称は，私です\
+          \
+          カテゴリ名：\
+          ＊chatbotシステムに関する質問\
+          ＊授業に関する質問\
+          ＊課題に関する質問\
+          ＊エラーに関する質問\
+          ＊データの前処理に関する質問\
+          ＊プログラム自体に関する質問\
+          \
+          回答の例：\
+          ＊chatbotシステムに関する質問\
+          ＊授業に関する質問\
+          ＊課題に関する質問\
+          ＊エラーに関する質問\
+          ＊データの前処理に関する質問\
+          ＊プログラム自体に関する質問\
+          "
+          },
+        { role: "assistant", content: message.text },
+        { role: "user", content:"この質問内容に相当するカテゴリを返してください" }
+      ],
     });
     console.log(response);
 
