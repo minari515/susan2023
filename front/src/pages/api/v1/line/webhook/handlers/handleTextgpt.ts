@@ -73,12 +73,49 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
     if (response.data.choices && response.data.choices.length > 0) {
       if (response.data.choices[0].message) {
         const res = response.data.choices[0].message.content;
-        replyMessage = [
-          {
-            type: "text",
-            text: res,
-          } as TextMessage,
-        ];
+        if (res.match(/chatbotシステムに関する質問/)){
+          replyMessage = [
+            {
+              type: "text",
+              text: "chatbotシステム",
+            } as TextMessage,
+          ];
+        }else if (res.match(/授業に関する質問/)){
+          replyMessage = [
+            {
+              type: "text",
+              text: "じゅぎょう",
+            } as TextMessage,
+          ];
+        }else if (res.match(/課題に関する質問/)){
+          replyMessage = [
+            {
+              type: "text",
+              text: "課題",
+            } as TextMessage,
+          ];
+        }else if (res.match(/エラーに関する質問/)){
+          replyMessage = [
+            {
+              type: "text",
+              text: "エラーに関する",
+            } as TextMessage,
+          ];
+        }else if (res.match(/データの前処理に関する質問/)){
+          replyMessage = [
+            {
+              type: "text",
+              text: "データの前処理",
+            } as TextMessage,
+          ];
+        }else if (res.match(/プログラム自体に関する質問/)){
+          replyMessage = [
+            {
+              type: "text",
+              text: "プログラムそのもの",
+            } as TextMessage,
+          ];
+        }
         console.log(replyMessage);
       }
     }
