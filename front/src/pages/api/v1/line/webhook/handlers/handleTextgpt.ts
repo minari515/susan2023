@@ -39,8 +39,10 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
       messages: [
-        { role:"system", content:
-          "あなたは送られてきた質問をカテゴリ別に分類する人です.\
+        {
+          role: "system",
+          content:
+            "あなたは送られてきた質問をカテゴリ別に分類する人です.\
           送られる質問に対し，カテゴリ名のみを返してください．\
           \
           制約条件：\
@@ -62,10 +64,13 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
           ＊エラーに関する質問\
           ＊データの前処理に関する質問\
           ＊プログラム自体に関する質問\
-          "
-          },
+          ",
+        },
         { role: "assistant", content: message.text },
-        { role: "user", content:"この質問内容に相当するカテゴリを返してください" }
+        {
+          role: "user",
+          content: "この質問内容に相当するカテゴリを返してください",
+        },
       ],
     });
     console.log(response);
@@ -73,46 +78,46 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
     if (response.data.choices && response.data.choices.length > 0) {
       if (response.data.choices[0].message) {
         const res = response.data.choices[0].message.content;
-        if (res.match(/chatbotシステムに関する質問/)){
+        if (res.match(/chatbotシステムに関する質問/)) {
           replyMessage = [
             {
               type: "text",
               text: "chatbotシステム",
             } as TextMessage,
           ];
-        }else if (res.match(/授業に関する質問/)){
+        } else if (res.match(/授業に関する質問/)) {
           replyMessage = [
             {
               type: "text",
               text: "じゅぎょう",
             } as TextMessage,
           ];
-        }else if (res.match(/課題に関する質問/)){
+        } else if (res.match(/課題に関する質問/)) {
           replyMessage = [
             {
               type: "text",
               text: "課題",
             } as TextMessage,
           ];
-        }else if (res.match(/エラーに関する質問/)){
+        } else if (res.match(/エラーに関する質問/)) {
           replyMessage = [
             {
               type: "text",
-              text: "エラーに関する",
+              text: res,
             } as TextMessage,
           ];
-        }else if (res.match(/データの前処理に関する質問/)){
+        } else if (res.match(/データの前処理に関する質問/)) {
           replyMessage = [
             {
               type: "text",
-              text: "データの前処理",
+              text: res,
             } as TextMessage,
           ];
-        }else if (res.match(/プログラム自体に関する質問/)){
+        } else if (res.match(/プログラム自体に関する質問/)) {
           replyMessage = [
             {
               type: "text",
-              text: "プログラムそのもの",
+              text: res,
             } as TextMessage,
           ];
         }
