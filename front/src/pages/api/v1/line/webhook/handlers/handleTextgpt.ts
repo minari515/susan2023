@@ -111,12 +111,12 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
                   \
                   質問の中には回答するにあたって情報が不十分な場合があります．\
                   その際は情報が足りない旨を伝え，\
-                  回答するために必要な情報を追記するように催促してください．"
+                  回答するために必要な情報を追記するように催促してください．",
               },
               { role: "assistant", content: message.text },
               {
                 role: "user",
-                content: "この質問内容への解答を返してください",
+                content: "この質問内容への解答を30字以内で返してください",
               },
             ],
           });
@@ -129,7 +129,7 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
                 } as TextMessage,
               ];
             }
-          }else{
+          } else {
             replyMessage = [
               {
                 type: "text",
@@ -149,7 +149,7 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
                   \
                   質問の中には回答するにあたって情報が不十分な場合があります．\
                   その際は情報が足りない旨を伝え，\
-                  回答するために必要な情報を追記するように催促してください．"
+                  回答するために必要な情報を追記するように催促してください．",
               },
               { role: "assistant", content: message.text },
               {
@@ -167,7 +167,7 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
                 } as TextMessage,
               ];
             }
-          }else{
+          } else {
             replyMessage = [
               {
                 type: "text",
@@ -187,7 +187,7 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
                   \
                   質問の中には回答するにあたって情報が不十分な場合があります．\
                   その際は情報が足りない旨を伝え，\
-                  回答するために必要な情報を追記するように催促してください．"
+                  回答するために必要な情報を追記するように催促してください．",
               },
               { role: "assistant", content: message.text },
               {
@@ -205,7 +205,7 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
                 } as TextMessage,
               ];
             }
-          }else{
+          } else {
             replyMessage = [
               {
                 type: "text",
