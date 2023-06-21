@@ -33,6 +33,7 @@ class BotController
 
   function __construct()
   {
+    error_log(print_r($this->code, true) . "\n", 3, dirname(__FILE__).'/debugA.log');
     $this->url = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://').$_SERVER['HTTP_HOST'].mb_substr($_SERVER['SCRIPT_NAME'],0,-9).basename(__FILE__, ".php")."/";
     $this->httpClient = new CurlHTTPClient(getenv("LINE_ACCESS_TOKEN"));
     $this->bot = new LINEBot($this->httpClient, ['channelSecret' => getenv("LINE_CHANNEL_SECRET")]);
@@ -57,10 +58,10 @@ class BotController
    * @return array レスポンス
    */
   public function post($args) {
-    var_dump($args);
+    error_log(print_r($args) . "\n", 3, dirname(__FILE__).'/debugA.log');
     $this->signature = $_SERVER['HTTP_' . HTTPHeader::LINE_SIGNATURE];
     if(empty($this->signature)){
-      $this->code = 400;
+      $this->code = 200;
       return ["error" => [
         "type" => "signature_not_found"
       ]];
@@ -72,7 +73,7 @@ class BotController
     try {
       // LINEBotが受信したイベントオブジェクトを受け取る
       $events = $this->bot->parseEventRequest($post, $this->signature);
-      //error_log(print_r($events, true) . "\n", 3, dirname(__FILE__).'/debug.log');
+      // error_log(print_r($events, true) . "\n", 3, dirname(__FILE__).'/debug.log');
 
     } catch (InvalidSignatureException $e) {
       $this->code = 400;
@@ -97,9 +98,12 @@ class BotController
 
       if ($eventType === 'message') {
         // メッセージイベント
-        // レスポンス書こうね
+        var_dump($args);
         $replyMessages = $this->handleMessageEvent($event);
+        error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__).'/debug.log');
         $response = $this->bot->replyMessage($replyToken, $replyMessages);
+        error_log(print_r($response, false) . "\n", 3, dirname(__FILE__).'/debug.log');
+        error_log(print_r($response, true) . "\n", 3, dirname(__FILE__).'/debug.log');
 
       } else if ($eventType === 'follow') {
         // フォローイベント(友達追加・ブロック解除時)
@@ -116,7 +120,7 @@ class BotController
 
       // 送信失敗の場合はサーバーのエラーログへ
       if(!$response->isSucceeded()){
-        error_log('Failed! '. $response->getHTTPStatus() . ' '.$response->getRawBody(), 3, dirname(__FILE__).'/debug.log');
+        error_log('Failed! '. $response->getHTTPStatus() . ' '.$response->getRawBody(), 3, dirname(__FILE__).'/debugC.log');
       }
 
       $this->code = $response->getHTTPStatus();

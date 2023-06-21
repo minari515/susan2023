@@ -28,6 +28,7 @@ if(file_exists($file_path)){
   $object = new $class_name(); // クラスのインスタンスの生成
   //$response = json_encode($object->$method_name(...$paths)); //TO DO: スプレッド構文はphp ver.5.6系で使えないので泣く泣く配列を渡すことに
   $response = json_encode($object->$method_name($paths)); // 該当コントローラにある$method_nameと同名のメソッドを呼び出し，その返り値をjsonとして$responseへ
+  // error_log(print_r($response, true) . "\n", 3, dirname(__FILE__).'/debugA.log');
   // 該当コントローラの決めたHTTPステータスコードを受け取る
   if(!$object->code){
     $response_code = 200;
