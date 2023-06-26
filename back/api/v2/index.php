@@ -37,7 +37,8 @@ if(file_exists($file_path)){
   };
 
   header("Content-Type: application/json; charset=utf-8", true, $response_code);
-  echo $response;
+  echo json_encode($response);
+  exit;
 
 }else{ //ファイルが無ければエラー処理
   header("HTTP/1.1 404 Not Found");
