@@ -2,19 +2,19 @@
 ini_set('display_errors',1);
 
 require_once(dirname(__FILE__)."/../../../vendor/autoload.php");
+require_once(dirname(__FILE__)."/gptreply.php");
 
-use LINE\LINEBot\HTTPClient\CurlHTTPClient;
 use LINE\LINEBot;
+use LINE\LINEBot\HTTPClient\CurlHTTPClient;
 use LINE\LINEBot\MessageBuilder\MultiMessageBuilder;
 use LINE\LINEBot\MessageBuilder\TextMessageBuilder;
 use LINE\LINEBot\MessageBuilder\StickerMessageBuilder;
 use LINE\LINEBot\Exception\InvalidEventRequestException;
 use LINE\LINEBot\Exception\InvalidSignatureException;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use \LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder;
+use \LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder;
+use \LINE\LINEBot\MessageBuilder\TemplateMessageBuilder;
 use Dotenv\Dotenv;
-use GuzzleHttp\Psr7\Message;
-use function GuzzleHttp\Promise\exception_for;
 
 $dotenv = Dotenv::createImmutable(__DIR__."/../../../"); //.envを読み込む
 $dotenv->load();
@@ -88,6 +88,10 @@ class BotController
     try {
       // LINEBotが受信したイベントオブジェクトを受け取る
       $events = $this->bot->parseEventRequest($requestBody, $signature);
+      // セッション管理用に学生ごとのセッションIDを取得（学生のユーザIDを使用）
+      $jsonData = json_decode($requestBody, true);
+      $studentId = $jsonData['events'][0]['source']['userId'];
+
 
     } catch (InvalidSignatureException $e) {
       $this->code = 400;
@@ -109,9 +113,10 @@ class BotController
 
       if ($eventType === 'message') {
         // メッセージイベント
-        $replyMessages = $this->handleMessageEvent($event);
+        $replyMessages = $this->handleMessageEvent($event, $studentId);
         $response = $this->bot->replyMessage($replyToken, $replyMessages);
-
+        // error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__).'/debug_replymes.log');
+        // error_log(print_r($response, true) . "\n", 3, dirname(__FILE__).'/debug_response.log');
       } else if ($eventType === 'follow') {
         // フォローイベント(友達追加・ブロック解除時)
         $replyMessages = $this->handleFollowEvent($event);
@@ -142,43 +147,55 @@ class BotController
     return $replyMessages;
   }
 
-  public function handleMessageEvent($event){
-    error_log(print_r($event, true) . "\n", 3, dirname(__FILE__).'/debug_event.log');
-    error_log("hogehoge" . "\n", 3, dirname(__FILE__).'/debug_event.log');
+  public function handleMessageEvent($event, $studentId){
     $replyMessages = new MultiMessageBuilder();
-    $apiUrl = 'https://api.openai.com/v1/chat/completions';
-    // APIに送信するパラメーター
-    $data = [
-      'model' => 'gpt-3.5-turbo',
-      'messages' => [
-        ['role' => 'system', 'content' => 'こんにちは！'],
-        ['role' => 'user', 'content' => $event->getText()],
-      ],
-      'max_tokens' => 100,
-    ];
+    // メッセージの取得
+    $userMessage = $event->getText();
+    // セッションIDを元にセッションの状態を取得
+    $sessionId = 'session_' . $studentId;
+    $sessionData = isset($_SESSION[$sessionId]) ? $_SESSION[$sessionId] : array();
+    error_log(print_r($sessionId, true) . "\n", 3, dirname(__FILE__).'/debug_session.log');
+    error_log(print_r($userMessage, true) . "\n", 3, dirname(__FILE__).'/debug_message.log');
 
-    // Guzzleを使ってAPIにリクエストを送信する
-    try {
-      $client = new Client();
-      $gptresponse = $client->post($apiUrl, [
-      'headers' => [
-        'Content-Type' => 'application/json',
-        'Authorization' => 'Bearer ' . getenv("OPENAI_API_KEY"),
-        ],
-      'json' => $data,
-      ]);
-    } catch(Exception $e) {
-      error_log(print_r($e, true) . "\n", 3, dirname(__FILE__).'/debug_error.log');
+    
+    // セッションの状態に応じて適切な処理を行う
+    if ($userMessage === '質問があります') {
+      // 新しいセッションを開始
+      $_SESSION[$sessionId] = array('state' => 'initial');
+      // 「質問があります」という学生の最初のメッセージに対して返答を生成
+      $generatedText = 'こんにちは！データサイエンス入門${type}第${number}回講義の質問を受付中です！！質問を具体的に書いてもらえる？😊';
+      $replyMessages->add(new TextMessageBuilder($generatedText));
+    } elseif ($userMessage === '質問を終了') {
+      // セッション終了
+      unset($_SESSION[$sessionId]);
+      $generatedText = '質問対応を終了しました。新しい質問があればいつでも聞いてくださいね！😊';
+      $replyMessages->add(new TextMessageBuilder($generatedText));
+    } else {
+      // セッション中の処理（質問に対する応答など）
+      $generatedText = makereply($event);
+      if (preg_match("/先生に聞いてみようか🤔/", $generatedText))
+      {
+        $yes_confirm = new PostbackTemplateActionBuilder('はい', 'confirm=1');
+        $no_confirm = new PostbackTemplateActionBuilder('いいえ', 'confirm=0');
+        $actions = [$yes_confirm, $no_confirm];
+        $confirm = new ConfirmTemplateBuilder('先生に聞いてみようか🤔', $actions);
+        $confirm_message = new TemplateMessageBuilder('先生に聞いてみようか🤔', $confirm);
+        $replyMessages->add($confirm_message);
+      }else
+      {
+        $replyMessages->add(new TextMessageBuilder($generatedText));
+        $yes_confirm = new PostbackTemplateActionBuilder('はい', 'confirm=1');
+        $no_confirm = new PostbackTemplateActionBuilder('いいえ', 'confirm=0');
+        $actions = [$yes_confirm, $no_confirm];
+        $confirm = new ConfirmTemplateBuilder('質問は解決しましたか？🧐', $actions);
+        $confirm_message = new TemplateMessageBuilder('質問は解決しましたか？🧐', $confirm);
+        $replyMessages->add($confirm_message);
+      };
+      // $responseMessage = generateResponse($userMessage);
     }
-    // APIからのレスポンスを取得する
-    $result = json_decode($gptresponse->getBody()->getContents(), true);
-    error_log(print_r($result, true) . "\n", 3, dirname(__FILE__).'/debug_event.log');
-    // 生成されたテキストを取得する
-    $generatedText = $result['choices'][0]['message']['content'];
-    error_log(print_r(json_decode($gptresponse->getBody()->getContents(), true), true) . "\n", 3, dirname(__FILE__).'/debug_event.log');
-    error_log(print_r($generatedText, true) . "\n", 3, dirname(__FILE__).'/debug_event.log');
-    $replyMessages->add(new TextMessageBuilder($generatedText));
-    $replyMessages->add(new StickerMessageBuilder(1, 2));
+
+    error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__).'/debug_reply.log');
+    // $replyMessages->add(new StickerMessageBuilder(1, 2));
     return $replyMessages;
   }
 

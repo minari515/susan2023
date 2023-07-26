@@ -89,7 +89,7 @@ const handleTextgpt = async (message: TextEventMessage, replyToken: string) => {
           replyMessage = [
             {
               type: "text",
-              text: "じゅぎょう",
+              text: "授業",
             } as TextMessage,
           ];
         } else if (res_cat.match(/課題に関する質問/)) {
