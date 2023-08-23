@@ -1,5 +1,7 @@
 <?php
 ini_set('display_errors',1);
+// error_log("ほげほげ". "\n", 3, dirname(__FILE__).'/debugA.log');
+
 
 //header("Access-Control-Allow-Origin: https://susan2023-five.vercel.app"); //本番用
 header("Access-Control-Allow-Origin: *"); //開発用
