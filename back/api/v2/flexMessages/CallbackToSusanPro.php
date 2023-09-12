@@ -119,25 +119,25 @@ function requestFlex($request){
  * @param array $payload 送信するデータ
  * @return bool 送信成功||失敗
  */
-function sendEmailToInstructors($type, $payload){
-  mb_language("Japanese");
-  mb_internal_encoding("UTF-8");
+// function sendEmailToInstructors($type, $payload){
+//   mb_language("Japanese");
+//   mb_internal_encoding("UTF-8");
 
-  // $to = file_get_contents(dirname( __FILE__).'/../../Config/InstructorsAddress.txt');
-  $to = getenv("INSTRUCTOR_EMAIL");
-  error_log(print_r($to, true) . "\n", 3, dirname(__FILE__).'/debug.log');
+//   // $to = file_get_contents(dirname( __FILE__).'/../../Config/InstructorsAddress.txt');
+//   $to = getenv("INSTRUCTOR_EMAIL");
+//   error_log(print_r($to, true) . "\n", 3, dirname(__FILE__).'/debug.log');
   
-  if($type === "newquestion"){
-    $subject = "[SUSANbot] 新しい質問 が投稿されました";
-  }else if($type === "message"){
-    $subject = "[SUSANbot] メッセージ が投稿されました";
-  }
-  $message = $payload['message']."\r\n \r\n".
-              "確認する↓\r\n".
-              "https://liff.line.me/1660896972-Xol6KpBrqanda_setter?index=".$payload['index']."\r\n ";
+//   if($type === "newquestion"){
+//     $subject = "[SUSANbot] 新しい質問 が投稿されました";
+//   }else if($type === "message"){
+//     $subject = "[SUSANbot] メッセージ が投稿されました";
+//   }
+//   $message = $payload['message']."\r\n \r\n".
+//               "確認する↓\r\n".
+//               "https://liff.line.me/1660896972-Xol6KpBrqanda_setter?index=".$payload['index']."\r\n ";
 
-  // $headers = "From: ".file_get_contents(dirname( __FILE__).'/../../Config/MyAddress.txt');
-  $headers = "From: " .getenv("INSTRUCTOR_EMAIL");
+//   // $headers = "From: ".file_get_contents(dirname( __FILE__).'/../../Config/MyAddress.txt');
+//   $headers = "From: noreply@susan.next.jp";
 
-  return mb_send_mail($to, $subject, $message, $headers); 
-}
+//   return mb_send_mail($to, $subject, $message, $headers); 
+// }
