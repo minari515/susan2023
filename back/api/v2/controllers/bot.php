@@ -1,6 +1,5 @@
 <?php
 ini_set('display_errors', 1);
-// error_log("ほげほげ". "\n", 3, dirname(__FILE__).'/debug.log');
 
 require_once(dirname(__FILE__) . "/../../../vendor/autoload.php");
 require_once(dirname(__FILE__) . "/gptreply.php");
@@ -74,8 +73,14 @@ class BotController
             "type" => "signature_not_found"
           ]];
         }
+        // レスポンスデータを作成
+        $responseData = $this->webhook($this->requestBody, $_SERVER['HTTP_X_LINE_SIGNATURE']);
+
+        // レスポンスデータをJSONエンコード
+        $jsonResponse = json_encode($responseData);
+
         // 署名検証のため，request body をそのまま渡す
-        return $this->webhook($this->requestBody, $_SERVER['HTTP_X_LINE_SIGNATURE']);
+        return $jsonResponse;
 
         // LINEbot のプッシュ通知処理
       case "push":
@@ -127,13 +132,12 @@ class BotController
         $response = $this->bot->replyMessage($replyToken, $replyMessages);
       } else if ($eventType === 'postback') {
         // ボタンなど押した場合
-        error_log("ほげほげ" . "\n", 3, dirname(__FILE__) . '/debug.log');
         // continue;
         $responseMessage = new MultiMessageBuilder();
         // $responseMessage->add(new TextMessageBuilder('エラー'));
         // ユーザが選択したボタンの情報を取得
         $postbackData = $jsonData['events'][0]['postback']['data'];
-        error_log(print_r($postbackData, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
+        // error_log(print_r($postbackData, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
 
         // ユーザの選択に応じて返答を生成
         if ($postbackData === 'action=confirm&response=q_yes') {
@@ -141,7 +145,7 @@ class BotController
         } elseif ($postbackData === 'action=confirm&response=q_no') {
           $sample = "sample";
           $flexMessage = requestAnswerFlexMessageBuilder($sample);
-          error_log(print_r($flexMessage, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
+          // error_log(print_r($flexMessage, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
           // $flexMessageBuilder = new FlexMessageBuilder("この質問で間違いないですか？", $flexMessage);
           $responseMessage->add($flexMessage);
         } elseif ($postbackData === 'action=confirm&response=t_yes') {
@@ -197,9 +201,12 @@ class BotController
     // セッションの状態に応じて適切な処理を行う
     if ($userMessage === '質問があります') {
       // 新しいセッションを開始
+      error_log(print_r("質問開始", true) . "\n", 3, dirname(__FILE__) . '/debug.log');
       $_SESSION[$sessionId] = array('state' => 'initial');
       // 「質問があります」という学生の最初のメッセージに対して返答を生成
-      $generatedText = 'こんにちは！データサイエンス入門' + $type + '第' + $number + '回講義の質問を受付中です！質問を具体的に書いてもらえる？😊';
+      // $generatedText = 'こんにちは！データサイエンス入門' + $type + '第' + $number + '回講義の質問を受付中です！質問を具体的に書いてもらえる？😊';
+      $generatedText = 'こんにちは！データサイエンス入門の質問を受付中です！質問を具体的に書いてもらえる？😊';
+      error_log(print_r($generatedText, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
       $replyMessages->add(new TextMessageBuilder($generatedText));
     } elseif ($userMessage === '質問を終了') {
       // セッション終了

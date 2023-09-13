@@ -1,9 +1,11 @@
 <?php
-ini_set('display_errors',1);
+// ini_set('display_errors',1);
 
-require_once(dirname(__FILE__)."/../../../vendor/autoload.php");
+require_once(dirname(__FILE__) . "/../../../vendor/autoload.php");
+
 use Dotenv\Dotenv;
-$dotenv = Dotenv::createImmutable(__DIR__."/../../../"); //.envを読み込む
+
+$dotenv = Dotenv::createImmutable(__DIR__ . "/../../../"); //.envを読み込む
 $dotenv->load();
 
 class UsersController
@@ -14,8 +16,8 @@ class UsersController
 
   function __construct()
   {
-    $this->url = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://').$_SERVER['HTTP_HOST'].mb_substr($_SERVER['SCRIPT_NAME'],0,-9).basename(__FILE__, ".php")."/";
-    $this->request_body = json_decode(mb_convert_encoding(file_get_contents('php://input'),"UTF8","ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN"),true);
+    $this->url = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'] . mb_substr($_SERVER['SCRIPT_NAME'], 0, -9) . basename(__FILE__, ".php") . "/";
+    $this->request_body = json_decode(mb_convert_encoding(file_get_contents('php://input'), "UTF8", "ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN"), true);
   }
 
   /**************************************************************************** */
@@ -24,21 +26,22 @@ class UsersController
    * @param array $args
    * @return array レスポンス
    */
-  public function get($args) {
-    if(!array_key_exists("userIdToken",$_GET)){
+  public function get($args)
+  {
+    if (!array_key_exists("userIdToken", $_GET)) {
       $this->code = 400;
       return ["error" => [
         "type" => "invalid_param"
       ]];
     }
-    try{
+    try {
       $userId = $this->verifyLine($_GET["userIdToken"])["sub"];
       $result = $this->getUserInfo($userId);
-      $this -> code = $result["status"];
+      $this->code = $result["status"];
       return $result["response"];
-    }catch(Exception $error){
+    } catch (Exception $error) {
       $result = json_decode($error->getMessage(), true);
-      $this -> code = $result["status"];
+      $this->code = $result["status"];
       return $result["error"];
     }
   }
@@ -48,42 +51,43 @@ class UsersController
    * @param string $userUid LINEのユーザID
    * @return array 
    */
-  public function getUserInfo($userUid) {
+  public function getUserInfo($userUid)
+  {
     $db = new DB();
-    $pdo = $db -> pdo();
-    try{
+    $pdo = $db->pdo();
+    try {
       // 教員・TAか確認する
-      $stmt = $pdo -> prepare(
+      $stmt = $pdo->prepare(
         "SELECT *
         FROM `Users` 
         WHERE userUid = :userUid"
       );
       $stmt->bindValue(':userUid', $userUid, PDO::PARAM_STR);
       $res = $stmt->execute();
-  
-      if($res){
+
+      if ($res) {
         $user = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if(count($user) != 0){
-          return [ "status" => 200, "response" => $user[0] ];
-        }else{ //存在しない場合
+        if (count($user) != 0) {
+          return ["status" => 200, "response" => $user[0]];
+        } else { //存在しない場合
           throw new Exception(json_encode([
-            "status" => 404, 
+            "status" => 404,
             "error" => [
               "message" => "User not found."
             ]
           ]));
         }
-      }else{
+      } else {
         throw new Exception(json_encode([
-          "status" => 500, 
+          "status" => 500,
           "error" => [
             "message" => "pdo not response"
           ]
         ]));
       }
-    } catch(PDOException $error){
-      throw new Exception(json_encode([ 
-        "status" => 500, 
+    } catch (PDOException $error) {
+      throw new Exception(json_encode([
+        "status" => 500,
         "error" => [
           "type" => "pdo_exception",
           "message" => json_decode($error->getMessage()),
@@ -98,13 +102,14 @@ class UsersController
    * @param int $questionId 質問ID
    * @return array lineId: string 質問者のLINE ID
    */
-  public function getQuestionerLineId($questionIndex){
+  public function getQuestionerLineId($questionIndex)
+  {
     $db = new DB();
-    $pdo = $db -> pdo();
-    
-    try{
+    $pdo = $db->pdo();
+
+    try {
       // mysqlの実行文
-      $stmt = $pdo -> prepare(
+      $stmt = $pdo->prepare(
         "SELECT questionerId
         FROM `Questions` 
         WHERE `Questions`.`index` = :questionId"
@@ -114,23 +119,23 @@ class UsersController
       // 実行
       $res = $stmt->execute();
 
-      if(!$res){
+      if (!$res) {
         throw new Exception('pdo not response');
-      }else{
+      } else {
         $questionerId = $stmt->fetchAll(PDO::FETCH_COLUMN)[0];
-        return [ "lineId" => $questionerId ];
+        return ["lineId" => $questionerId];
       }
-    } catch(PDOException $error){
-      $this -> code = 500;
+    } catch (PDOException $error) {
+      $this->code = 500;
       return [
         "error" => [
           "type" => "pdo_exception",
           "message" => $error->getMessage()
         ],
       ];
-    } finally{
+    } finally {
       //echo "finally!!";
-    } 
+    }
   }
 
   /**
@@ -138,13 +143,14 @@ class UsersController
    * @param int $questionIndex 質問Index
    * @return array assigneeIds: string[] 協力者のLINE ID配列
    */
-  public function getAssignedStudent($questionIndex){
+  public function getAssignedStudent($questionIndex)
+  {
     $db = new DB();
-    $pdo = $db -> pdo();
+    $pdo = $db->pdo();
 
-    try{
+    try {
       // mysqlの実行文
-      $stmt = $pdo -> prepare(
+      $stmt = $pdo->prepare(
         "SELECT `userUid`
         FROM `Assignments` 
         WHERE `questionIndex` = :questionIndex"
@@ -154,21 +160,21 @@ class UsersController
       // 実行
       $res = $stmt->execute();
 
-      if(!$res){
+      if (!$res) {
         throw new Exception('pdo not response');
-      }else{
+      } else {
         $assigneeIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        return [ "assigneeIds" => $assigneeIds ];
+        return ["assigneeIds" => $assigneeIds];
       }
-    } catch(PDOException $error){
-      $this -> code = 500;
+    } catch (PDOException $error) {
+      $this->code = 500;
       return [
         "error" => [
           "type" => "pdo_exception",
           "message" => $error->getMessage()
         ],
       ];
-    } finally{
+    } finally {
       //echo "finally!!";
     }
   }
@@ -180,42 +186,45 @@ class UsersController
    * @param array $args
    * @return array レスポンス
    */
-  public function post($args) {
+  public function post($args)
+  {
     $post = $this->request_body;
-    if(!array_key_exists("userIdToken",$post)){
+    if (!array_key_exists("userIdToken", $post)) {
       $this->code = 400;
       return ["error" => [
         "type" => "invalid_param"
       ]];
     }
-    try{
+    try {
       $verifyResult = $this->verifyLine($post["userIdToken"]);
       $userId = $verifyResult["sub"];
-    }catch(Exception $error){
-      $this -> code = $error->getCode() || 500;
-      return ["error" => json_decode($error->getMessage(),true)];
+    } catch (Exception $error) {
+      $this->code = $error->getCode() || 500;
+      return ["error" => json_decode($error->getMessage(), true)];
     }
 
-    switch($args[0]){
-      // 学生を実験協力者としてDBのリストに追加する
+    switch ($args[0]) {
+        // 学生を実験協力者としてDBのリストに追加する
       case "registration":
         // パラメータの存在確認
-        if(!array_key_exists("canAnswer",$post) ||
-          !array_key_exists("age",$post) ||
-          !array_key_exists("gender",$post)){
+        if (
+          !array_key_exists("canAnswer", $post) ||
+          !array_key_exists("age", $post) ||
+          !array_key_exists("gender", $post)
+        ) {
           $this->code = 400;
           return ["error" => [
             "type" => "invalid_param"
           ]];
         }
-        $name = array_key_exists("name",$post) ? $post["name"] : null;
-        $type = array_key_exists("type",$post) ? $post["type"] : "student";
+        $name = array_key_exists("name", $post) ? $post["name"] : null;
+        $type = array_key_exists("type", $post) ? $post["type"] : "student";
         return $this->newUserRegistration($userId, $name, $type, $post["canAnswer"], $post["age"], $post["gender"]);
         break;
 
-      // 無効なアクセス
+        // 無効なアクセス
       default:
-        $this -> code = 400;
+        $this->code = 400;
         return ["error" => [
           "type" => "invalid_access"
         ]];
@@ -228,13 +237,14 @@ class UsersController
    * @param array $questionnaire アンケートへの回答
    * @return array $result DB追加の成功/失敗
    */
-  private function newUserRegistration($lineId, $name, $userType, $canAnswer, $age, $gender) {
+  private function newUserRegistration($lineId, $name, $userType, $canAnswer, $age, $gender)
+  {
     $db = new DB();
-    $pdo = $db -> pdo();
+    $pdo = $db->pdo();
 
-    try{
+    try {
       // mysqlの実行文の記述
-      $stmt = $pdo -> prepare(
+      $stmt = $pdo->prepare(
         "INSERT INTO Users (userUid, name, type, canAnswer, age, gender)
         VALUES (:userUid, :name, :type, :canAnswer, :age, :gender)"
       );
@@ -245,11 +255,11 @@ class UsersController
       $stmt->bindValue(':type', $userType, PDO::PARAM_STR);
       $stmt->bindValue(':canAnswer', $canAnswer, PDO::PARAM_INT);
       $stmt->bindValue(':age', $age, PDO::PARAM_INT);
-      $stmt->bindValue(':gender', $gender , PDO::PARAM_STR);
+      $stmt->bindValue(':gender', $gender, PDO::PARAM_STR);
       // 実行
       $res = $stmt->execute();
       $lastIndex = $pdo->lastInsertId();
-      if($res){
+      if ($res) {
         $this->code = 201;
         //header("Location: ".$this->url.$lastIndex);
         return [
@@ -257,15 +267,14 @@ class UsersController
           "type" => $userType,
           "canAnswer" => $canAnswer,
         ];
-      }else{
+      } else {
         $this->code = 500;
         return ["error" => [
           "type" => "pdo_not_response"
         ]];
       }
-
-    } catch(PDOException $error){
-      $this -> code = 500;
+    } catch (PDOException $error) {
+      $this->code = 500;
       return ["error" => [
         "type" => "pdo_exception",
         "message" => $error
@@ -279,55 +288,55 @@ class UsersController
    * @param string $questionerId 質問者のLINEid
    * @param int $questionIndex 質問のインデックス
    */
-  public function assignStudentAnswerer($questionerId, $questionIndex){
+  public function assignStudentAnswerer($questionerId, $questionIndex)
+  {
     $db = new DB();
-    $pdo = $db -> pdo();
+    $pdo = $db->pdo();
 
-    try{
+    try {
       // mysqlの実行文の記述
-      $stmtA = $pdo -> prepare(
+      $stmtA = $pdo->prepare(
         "SELECT `userUid`
         FROM `Users`
         WHERE `userUid` != :questionerId AND `type` = 'student' AND `canAnswer` = 1
         ORDER BY RAND() LIMIT 10"
       );
-      
+
       //データの紐付け
       $stmtA->bindValue(':questionerId', $questionerId, PDO::PARAM_STR);
       // 実行
       $res = $stmtA->execute();
-      if(!$res) throw new Exception("fail to assign student answerer");
+      if (!$res) throw new Exception("fail to assign student answerer");
       $assignedStudents = $stmtA->fetchAll(PDO::FETCH_COLUMN);
 
       $sqlB = "INSERT INTO `Assignments` (`questionIndex`, `userUid`)
               VALUES ";
-      foreach(array_keys($assignedStudents) as $key){
-        $sqlB .= "(:questionIndex".$key.", :studentId".$key."),";
+      foreach (array_keys($assignedStudents) as $key) {
+        $sqlB .= "(:questionIndex" . $key . ", :studentId" . $key . "),";
       }
       $sqlB = substr($sqlB, 0, -1);
-      $stmtB = $pdo -> prepare($sqlB);
+      $stmtB = $pdo->prepare($sqlB);
 
-      foreach($assignedStudents as $key => $studentId){
-        $stmtB->bindValue(':questionIndex'.$key, $questionIndex, PDO::PARAM_INT);
-        $stmtB->bindValue(':studentId'.$key, $studentId, PDO::PARAM_STR);
+      foreach ($assignedStudents as $key => $studentId) {
+        $stmtB->bindValue(':questionIndex' . $key, $questionIndex, PDO::PARAM_INT);
+        $stmtB->bindValue(':studentId' . $key, $studentId, PDO::PARAM_STR);
       }
 
       $res = $stmtB->execute();
-      if(!$res) throw new Exception("fail to assign student answerer");
+      if (!$res) throw new Exception("fail to assign student answerer");
 
       $this->code = 201;
       return [
         "assignedStudents" => $assignedStudents
       ];
-
-    } catch(PDOException $error){
-      $this -> code = 500;
+    } catch (PDOException $error) {
+      $this->code = 500;
       return ["error" => [
         "type" => "pdo_exception",
         "message" => $error
       ]];
-    } catch(Exception $error){
-      $this -> code = 500;
+    } catch (Exception $error) {
+      $this->code = 500;
       return ["error" => [
         "type" => "exception",
         "message" => $error->getMessage()
@@ -349,7 +358,8 @@ class UsersController
     return !(is_null($value) || $value === "");
   }
 
-  public function verifyLine($id_token){
+  public function verifyLine($id_token)
+  {
     //  Initiate curl session
     $ch = curl_init();
 
@@ -375,17 +385,17 @@ class UsersController
 
     $result = json_decode($response, true);
 
-    if(array_key_exists("error", $result)){
-      throw new Exception(json_encode([ 
-        "status" => 400, 
+    if (array_key_exists("error", $result)) {
+      throw new Exception(json_encode([
+        "status" => 400,
         "error" => [
           "error" => $result["error"],
           "message" => $result["error_description"]
         ],
       ]));
-    }else if(!array_key_exists("sub", $result)){
-      throw new Exception(json_encode([ 
-        "status" => 500, 
+    } else if (!array_key_exists("sub", $result)) {
+      throw new Exception(json_encode([
+        "status" => 500,
         "error" => [
           "error" => "invalid_response",
           "message" => json_encode($result)
