@@ -27,13 +27,13 @@ const QuestionDetailsPage = () => {
 			>
 				<QuestionTextDisplay />
 				<AnswerTextDisplay />
-				<DiscussionProvider
+				{/* <DiscussionProvider
 					userIdToken={user.token}
 					questionIndex={Number(questionId)}
 				>
 					<DiscussionDisplay />
 					<CreateMessageArea />
-				</DiscussionProvider>
+				</DiscussionProvider> */}
 			</QuestionProvider>
 		</DefaultLayout>
 	) : (
