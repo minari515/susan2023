@@ -21,20 +21,21 @@ const QuestionDetailsPage = () => {
 
 	return !!user ? (
 		<DefaultLayout>
-			<QuestionProvider
+			<div>はろーわーるど</div>
+			{/* <QuestionProvider
 				userIdToken={user.token}
 				questionIndex={Number(questionId)}
 			>
 				<QuestionTextDisplay />
 				<AnswerTextDisplay />
-				{/* <DiscussionProvider
+				<DiscussionProvider
 					userIdToken={user.token}
 					questionIndex={Number(questionId)}
 				>
 					<DiscussionDisplay />
 					<CreateMessageArea />
-				</DiscussionProvider> */}
-			</QuestionProvider>
+				</DiscussionProvider>
+			</QuestionProvider> */}
 		</DefaultLayout>
 	) : (
 		<Loader />
