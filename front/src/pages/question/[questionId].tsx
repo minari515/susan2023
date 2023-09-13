@@ -20,23 +20,23 @@ const QuestionDetailsPage = () => {
 	const { user } = useContext(AuthContext);
 
 	return !!user ? (
-		<DefaultLayout>
-			<div>はろーわーるど</div>
-			{/* <QuestionProvider
-				userIdToken={user.token}
-				questionIndex={Number(questionId)}
-			>
-				<QuestionTextDisplay />
-				<AnswerTextDisplay />
-				<DiscussionProvider
-					userIdToken={user.token}
-					questionIndex={Number(questionId)}
-				>
-					<DiscussionDisplay />
-					<CreateMessageArea />
-				</DiscussionProvider>
-			</QuestionProvider> */}
-		</DefaultLayout>
+		<div>ほげほげ</div>
+		// <DefaultLayout>
+		// 	<QuestionProvider
+		// 		userIdToken={user.token}
+		// 		questionIndex={Number(questionId)}
+		// 	>
+		// 		<QuestionTextDisplay />
+		// 		<AnswerTextDisplay />
+		// 		<DiscussionProvider
+		// 			userIdToken={user.token}
+		// 			questionIndex={Number(questionId)}
+		// 		>
+		// 			<DiscussionDisplay />
+		// 			<CreateMessageArea />
+		// 		</DiscussionProvider>
+		// 	</QuestionProvider>
+		// </DefaultLayout>
 	) : (
 		<Loader />
 	);
