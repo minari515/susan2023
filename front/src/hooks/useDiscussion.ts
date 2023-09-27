@@ -27,7 +27,6 @@ const useDiscussionData = (
 				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v2/discussions/${questionIndex}`
 			);
 			if (status === 200) {
-				console.log("data", data)
 				setDiscussionMessages(data);
 			} else {
 				throw new Error("データベースからの取得に失敗しました");
