@@ -5,6 +5,7 @@ require_once(dirname(__FILE__) . "/../../../vendor/autoload.php");
 require_once(dirname(__FILE__) . "/gptreply.php");
 require_once(dirname(__FILE__) . "/../flexMessages/checkInputNewQuestion.php");
 require_once(dirname(__FILE__) . "/../utils/sendEmail.php");
+require_once(dirname(__FILE__) . "/line.php");
 
 
 use LINE\LINEBot;
@@ -187,6 +188,7 @@ class BotController
     // 手動で設定
     $type = "A";
     $number = 1;
+    $lineController = new LineController();
 
     $replyMessages = new MultiMessageBuilder();
     // メッセージの取得
@@ -196,11 +198,16 @@ class BotController
     $sessionData = isset($_SESSION[$sessionId]) ? $_SESSION[$sessionId] : array();
     error_log(print_r($sessionId, true) . "\n", 3, dirname(__FILE__) . '/debug_session.log');
     error_log(print_r($userMessage, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
+    $userId = $event->getuserId();
+    $messageType = "text";
+    $contextName = "";
+    $lifespanCount = "2"; //適当に設定してる
 
 
     // セッションの状態に応じて適切な処理を行う
     if ($userMessage === '質問があります') {
       // 新しいセッションを開始
+      $contextName = "question-start";
       error_log(print_r("質問開始", true) . "\n", 3, dirname(__FILE__) . '/debug.log');
       $_SESSION[$sessionId] = array('state' => 'initial');
       // 「質問があります」という学生の最初のメッセージに対して返答を生成
@@ -231,11 +238,17 @@ class BotController
       $payload = array('message' => $user_question_log, 'index' => $response["QAIndex"]);
       error_log(print_r($payload, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
       //echo callbackToSusanPro("question", $payload);
-      echo sendEmailToInstructors("newquestion", $user_question_log, "5");
+      echo sendEmailToInstructors("newQuestion", $user_question_log, "5");
       // $replyMessages->add(sentQuestionFlexMessage($response["QAIndex"]));
       $replyMessages->add(sentQuestionFlexMessage("5"));
       error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
     } else {
+      // 送られたテキストをデータベースに登録
+      error_log("あいうえお", 3, dirname(__FILE__) . '/debugevent.log');
+      $contextName = "question";
+      $lineController->insertConversation($userId, "student", $messageType, $userMessage, $contextName, $lifespanCount);
+      error_log(print_r($event, true) . "\n", 3, dirname(__FILE__) . '/debugevent.log');
+
       // セッション中の処理（質問に対する応答など）
       $generatedText = makereply($event);
       if (preg_match("/先生に聞いてみようか🤔/", $generatedText)) {
