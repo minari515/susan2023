@@ -1,5 +1,5 @@
 <?php
-ini_set('display_errors',1);
+ini_set('display_errors', 1);
 
 /**
  * LINEのユーザ情報・対話ログのコントローラー
@@ -12,8 +12,8 @@ class LineController
 
   function __construct()
   {
-    $this->url = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://').$_SERVER['HTTP_HOST'].mb_substr($_SERVER['SCRIPT_NAME'],0,-9).basename(__FILE__, ".php")."/";
-    $this->request_body = json_decode(mb_convert_encoding(file_get_contents('php://input'),"UTF8","ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN"),true);
+    $this->url = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'] . mb_substr($_SERVER['SCRIPT_NAME'], 0, -9) . basename(__FILE__, ".php") . "/";
+    $this->request_body = json_decode(mb_convert_encoding(file_get_contents('php://input'), "UTF8", "ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN"), true);
   }
 
   /**************************************************************************** */
@@ -22,10 +22,11 @@ class LineController
    * @param array $args
    * @return array レスポンス
    */
-  public function get($args){
-    switch($args[0]){
+  public function get($args)
+  {
+    switch ($args[0]) {
       case "context":
-        if(!$args[1]){
+        if (!$args[1]) {
           $this->code = 400;
           return ["error" => [
             "type" => "invalid_param",
@@ -36,7 +37,7 @@ class LineController
         break;
 
       case "question":
-        if(!$args[1]){
+        if (!$args[1]) {
           $this->code = 400;
           return ["error" => [
             "type" => "invalid_param",
@@ -45,7 +46,7 @@ class LineController
         }
         return $this->getUserInputQuestion($args[1]);
         break;
-      
+
       default:
         $this->code = 400;
         return ["error" => [
@@ -58,13 +59,14 @@ class LineController
    * ボットとの直前9時間以内の会話におけるコンテキストを取得する
    * @param string $lineid ユーザのLINEid
    */
-  private function getLatestContext($userUid) {
+  private function getLatestContext($userUid)
+  {
     $db = new DB();
-    $pdo = $db -> pdo();
+    $pdo = $db->pdo();
 
-    try{
+    try {
       // 直前９時間以内のチャットボット側の最新応答メッセージを取得
-      $stmt = $pdo -> prepare(
+      $stmt = $pdo->prepare(
         "SELECT `contextName`, `lifespanCount`
         FROM `BotTalkLogs` 
         WHERE userUid = :userUid AND timestamp >= DATE_SUB(NOW(),INTERVAL 9 HOUR) AND sender = 'bot' AND contextName IS NOT NULL
@@ -75,13 +77,13 @@ class LineController
       // 実行
       $res = $stmt->execute();
 
-      if($res){ //成功
+      if ($res) { //成功
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if(is_array($data) && empty($data)){
+        if (is_array($data) && empty($data)) {
           return [["name" => null, "lifespanCount" => null]];
-        }else{
+        } else {
           $contexts = [];
-          foreach($data as $context){
+          foreach ($data as $context) {
             $contexts[] = [
               "name" => $context["contextName"],
               "lifespanCount" => $context["lifespanCount"]
@@ -89,24 +91,22 @@ class LineController
           }
           return $contexts;
         }
-
-      }else{ //失敗
-        $log_message = print_r(date("Y/m/d H:i:s"), true)."\n".
-                      dirname( __FILE__)."/line.php"."\n".
-                      "pdo_not_response"."\n\n";
-        error_log($log_message, 3, dirname( __FILE__).'/debug.log');
-        $this -> code = 500;
+      } else { //失敗
+        $log_message = print_r(date("Y/m/d H:i:s"), true) . "\n" .
+          dirname(__FILE__) . "/line.php" . "\n" .
+          "pdo_not_response" . "\n\n";
+        error_log($log_message, 3, dirname(__FILE__) . '/debug.log');
+        $this->code = 500;
         return ["error" => [
           "type" => "pdo_not_response"
         ]];
       }
-
-    } catch(PDOException $error){
-      $log_message = print_r(date("Y/m/d H:i:s"), true)."\n".
-                      dirname( __FILE__)."/line.php"."\n".
-                      print_r($error, true)."\n\n";
-      error_log($log_message, 3, dirname( __FILE__).'/debug.log');
-      $this -> code = 500;
+    } catch (PDOException $error) {
+      $log_message = print_r(date("Y/m/d H:i:s"), true) . "\n" .
+        dirname(__FILE__) . "/line.php" . "\n" .
+        print_r($error, true) . "\n\n";
+      error_log($log_message, 3, dirname(__FILE__) . '/debug.log');
+      $this->code = 500;
       return ["error" => [
         "type" => "pdo_exception",
         "message" => $error
@@ -119,12 +119,13 @@ class LineController
    * @param string $userId LINEのユーザID
    * @return object $result 質問文
    */
-  private function getUserInputQuestion($userId) {
+  private function getUserInputQuestion($userId)
+  {
     $db = new DB();
-    $pdo = $db -> pdo();
+    $pdo = $db->pdo();
 
-    try{
-      $stmt = $pdo -> prepare(
+    try {
+      $stmt = $pdo->prepare(
         "SELECT `message`
         FROM `BotTalkLogs` 
         WHERE userUid = :userUid AND sender = 'student' AND (contextName = 'questionstart-followup' OR contextName = 'checktoasktheteacherdirectly-yes-followup')
@@ -135,28 +136,26 @@ class LineController
       // 実行
       $res = $stmt->execute();
 
-      if($res){ //成功
+      if ($res) { //成功
         $inputs = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        foreach($inputs as $input){
-          if($input != "質問を送信") return $input;
+        foreach ($inputs as $input) {
+          if ($input != "質問を送信") return $input;
         }
         return null;
-
-      }else{ //失敗
-        $log_message = print_r(date("Y/m/d H:i:s"), true)."\n".
-                      dirname( __FILE__)."/line.php"."\n".
-                      "pdo_not_response"."\n\n";
-        error_log($log_message, 3, dirname( __FILE__).'/debug.log');
+      } else { //失敗
+        $log_message = print_r(date("Y/m/d H:i:s"), true) . "\n" .
+          dirname(__FILE__) . "/line.php" . "\n" .
+          "pdo_not_response" . "\n\n";
+        error_log($log_message, 3, dirname(__FILE__) . '/debug.log');
         return ["error" => [
           "type" => "pdo_not_response"
         ]];
       }
-
-    } catch(PDOException $error){
-      $log_message = print_r(date("Y/m/d H:i:s"), true)."\n".
-                      dirname( __FILE__)."/line.php"."\n".
-                      print_r($error, true)."\n\n";
-      error_log($log_message, 3, dirname( __FILE__).'/debug.log');
+    } catch (PDOException $error) {
+      $log_message = print_r(date("Y/m/d H:i:s"), true) . "\n" .
+        dirname(__FILE__) . "/line.php" . "\n" .
+        print_r($error, true) . "\n\n";
+      error_log($log_message, 3, dirname(__FILE__) . '/debug.log');
       return ["error" => [
         "type" => "pdo_exception",
         "message" => $error
@@ -170,15 +169,19 @@ class LineController
    * @param array $args
    * @return array レスポンス
    */
-  public function post($args) {
+  public function post($args)
+  {
     $post = $this->request_body;
-    switch($args[0]){
+    switch ($args[0]) {
       case "message":
-        if(!array_key_exists("userId",$post) ||
-          !array_key_exists("messageType",$post) ||
-          !array_key_exists("message",$post) ||
-          !array_key_exists("sender",$post)
-        ){
+        error_log(print_r($post["userId"], true) . "\n", 3, dirname(__FILE__) . '/debugevent.log');
+        error_log(print_r($post, true) . "\n", 3, dirname(__FILE__) . '/debugevent.log');
+        if (
+          !array_key_exists("userId", $post) ||
+          !array_key_exists("messageType", $post) ||
+          !array_key_exists("message", $post) ||
+          !array_key_exists("sender", $post)
+        ) {
           $this->code = 400;
           return ["error" => [
             "type" => "invalid_param"
@@ -204,13 +207,15 @@ class LineController
    * @param int $lifespan_count Dialogflowで設定したコンテキスト持続回数
    * @return array 更新完了 ? 空配列 : エラーメッセージ
    */
-  private function insertConversation($userId, $sender, $messageType, $userMessage, $contextName, $lifespanCount) {
+  public function insertConversation($userId, $sender, $messageType, $userMessage, $contextName, $lifespanCount)
+  {
     $db = new DB();
-    $pdo = $db -> pdo();
+    $pdo = $db->pdo();
+    error_log(print_r($userId, true) . "\n", 3, dirname(__FILE__) . '/debugevent.log');
 
-    try{
+    try {
       // mysqlの実行文の記述
-      $stmt = $pdo -> prepare(
+      $stmt = $pdo->prepare(
         "INSERT INTO BotTalkLogs (userUid, sender, messageType, message, contextName, lifespanCount)
         VALUES (:userUid, :sender, :messageType, :message, :contextName, :lifespanCount)"
       );
@@ -221,31 +226,29 @@ class LineController
       $stmt->bindValue(':message', $userMessage, PDO::PARAM_STR);
       $stmt->bindValue(':contextName', $contextName, PDO::PARAM_STR);
       $stmt->bindValue(':lifespanCount', $lifespanCount, PDO::PARAM_INT);
-      
+
       // 実行
       $res = $stmt->execute();
       $lastIndex = $pdo->lastInsertId();
 
-      if($res){
+      if ($res) {
         $this->code = 201;
         return [];
-        
-      }else{
-        $log_message = print_r(date("Y/m/d H:i:s"), true)."\n".
-                      dirname( __FILE__)."/line.php"."\n".
-                      "pdo_not_response"."\n\n";
-        error_log($log_message, 3, dirname( __FILE__).'/debug.log');
+      } else {
+        $log_message = print_r(date("Y/m/d H:i:s"), true) . "\n" .
+          dirname(__FILE__) . "/line.php" . "\n" .
+          "pdo_not_response" . "\n\n";
+        error_log($log_message, 3, dirname(__FILE__) . '/debug.log');
         $this->code = 500;
         return ["error" => [
           "type" => "pdo_not_response"
         ]];
       }
-
-    } catch(PDOException $error){
-      $log_message = print_r(date("Y/m/d H:i:s"), true)."\n".
-                    dirname( __FILE__)."/line.php > insertConversationToMySQL"."\n".
-                    print_r($error, true)."\n\n";
-      error_log($log_message, 3, dirname( __FILE__).'/debug.log');
+    } catch (PDOException $error) {
+      $log_message = print_r(date("Y/m/d H:i:s"), true) . "\n" .
+        dirname(__FILE__) . "/line.php > insertConversationToMySQL" . "\n" .
+        print_r($error, true) . "\n\n";
+      error_log($log_message, 3, dirname(__FILE__) . '/debug.log');
       $this->code = 500;
       return ["error" => [
         "type" => "pdo_exception",
