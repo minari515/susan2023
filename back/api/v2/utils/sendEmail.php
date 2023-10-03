@@ -30,7 +30,7 @@ function sendEmailToInstructors($type, $messageText, $questionIndex)
   }
   $message = $messageText . "\r\n \r\n" .
     "確認する↓\r\n" .
-    "https://liff.line.me/1660896972-Xol6KpBr/question/" . $questionIndex . "\r\n ";
+    "https://susan2023-five.vercel.app/question/" . $questionIndex . "\r\n ";
 
   $headers = "From: noreply@susan.next.jp";
 
