@@ -10,22 +10,22 @@ const LinePushMessageHandler = async (
 	if (req.method === "GET") {
 		res.status(200).json({ message: "active!" });
 	} else if (req.method === "POST"){
-		const body = req.body as PushLineMessagePayload;
-		console.log(body);
-		if (!body.userIds.length && !body.broadcast) {
+		const {userIds, broadcast, event} = req.body as PushLineMessagePayload;
+		console.log(userIds);
+		if (!userIds.length && !broadcast) {
 			res.status(400).json({ error: "userId is required" });
 			return;
 		}
-		if (!body.event) {
+		if (!event) {
 			res.status(400).json({ error: "message event is required" });
 			return;
 		}
 		// event handling
-		if (body.event.type == "response" || body.event.type == "answer") {
-			const pushResponse = await pushResponseMessage(body);
+		if (event.type == "response" || event.type == "answer") {
+			const pushResponse = await pushResponseMessage({userIds, broadcast, event});
 			res.status(200).json({ pushResponse });
-		} else if (body.event.type == "announce") {
-			await pushAnnounceMessage(body);
+		} else if (event.type == "announce") {
+			await pushAnnounceMessage({userIds, broadcast, event});
 			res.status(200).json({ message: "success" });
 		} else {
 			res.status(400).json({ error: "event type is invalid" });
