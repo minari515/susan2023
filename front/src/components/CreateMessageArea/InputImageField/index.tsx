@@ -29,7 +29,7 @@ const InputImageField = () => {
 			setPostImage(undefined);
 		} catch (error: any) {
 			console.error(error);
-			alert(`エラーが発生しました. 
+			alert(`imageエラーが発生しました. 
 			Error:${JSON.stringify(error)}`);
 		} finally {
 			setIsLoading(false);

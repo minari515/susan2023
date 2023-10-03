@@ -34,7 +34,7 @@ const InputMessageField = () => {
 			setInputtedText("");
 		} catch (error: any) {
 			console.error(error);
-			alert(`エラーが発生しました. 
+			alert(`messageエラーが発生しました. 
 			Error:${JSON.stringify(error)}`);
 		} finally {
 			setIsLoading(false);

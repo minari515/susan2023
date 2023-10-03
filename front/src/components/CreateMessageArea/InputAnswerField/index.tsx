@@ -77,7 +77,7 @@ const InputAnswerField = () => {
 		} catch (error: any) {
 			console.error(error);
 			console.error(error);
-			alert(`エラーが発生しました. 
+			alert(`answerエラーが発生しました. 
 			Error:${JSON.stringify(error)}`);
 		} finally {
 			setIsLoading(false);
