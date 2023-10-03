@@ -32,20 +32,49 @@ const useLineMessages = (
 	/** ボットからメッセージを送信するAPIを叩く */
 	const pushLineMessage = async (payload: PushLineMessagePayload) => {
 		try {
-			const { status, data } = await axios.post("/api/v1/line/push", payload);
-			if (status !== 200) {
+			const response = await fetch("/api/v1/line/push", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(payload)
+			});
+
+			if (!response.ok) {
 				throw new Error("pushLineMessage failed");
 			}
+
+			// 以下の行はレスポンスのデータを使用する場合に利用します。
+			// const data = await response.json();
 		} catch (error: any) {
 			console.error(error);
-			if (error instanceof AxiosError) {
-				throw new AxiosError(`push line message: ${error.message}`);
+
+			// 通常のJavaScriptのErrorオブジェクトには 'message' プロパティがありますが、
+			// これをTypeScriptで安全に扱うためのハンドリングが必要かもしれません。
+			let errorMessage: string;
+			if ('message' in error) {
+				errorMessage = error.message;
 			} else {
-				throw new Error(
-					`push line message: ${error.message || "unknown error"}`
-				);
+				errorMessage = "unknown error";
 			}
+
+			throw new Error(`push line message: ${errorMessage}`);
 		}
+		// try {
+		// 	const { status, data } = await axios.post("/api/v1/line/push", payload);
+		// 	if (status !== 200) {
+		// 		throw new Error("pushLineMessage failed");
+		// 	}
+		// } catch (error: any) {
+		// 	console.error(error);
+		// 	if (error instanceof AxiosError) {
+		// 		throw new AxiosError(`push line message: ${error.message}`);
+		// 	} else {
+		// 		throw new Error(
+		// 			`push line message: ${error.message || "unknown error"}`
+		// 		);
+		// 	}
+		// }
 	};
 
 	return { linePayload, pushLineMessage };
