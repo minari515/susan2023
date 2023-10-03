@@ -4,8 +4,11 @@ ini_set('display_errors', 1);
 require_once(dirname(__FILE__) . "/../../../vendor/autoload.php");
 require_once(dirname(__FILE__) . "/gptreply.php");
 require_once(dirname(__FILE__) . "/../flexMessages/checkInputNewQuestion.php");
+require_once(dirname(__FILE__) . "/../flexMessages/CreateFlexMessage.php");
 require_once(dirname(__FILE__) . "/../utils/sendEmail.php");
 require_once(dirname(__FILE__) . "/line.php");
+require_once(dirname(__FILE__) . "/discussions.php");
+require_once(dirname(__FILE__) . "/questions.php");
 
 
 use LINE\LINEBot;
@@ -79,6 +82,7 @@ class BotController
 
         // レスポンスデータをJSONエンコード
         $jsonResponse = json_encode($responseData);
+        error_log(print_r($jsonResponse , true) . "\n", 3, dirname(__FILE__) . '/debugA.log');
 
         // 署名検証のため，request body をそのまま渡す
         return $jsonResponse;
@@ -143,18 +147,39 @@ class BotController
         // ユーザの選択に応じて返答を生成
         if ($postbackData === 'action=confirm&response=q_yes') {
           $responseMessage->add(new TextMessageBuilder('ありがとうございます！新しい質問があればいつでも聞いてくださいね！😊'));
+          $lineController = new LineController();
+          $lineController->insertConversation($studentId, "student", "text", "質問解決", "question-finish", "2");
+          // $lineController->insertConversation($studentId, "bot", "text", $responseMessage, "question-finish", "2");
+          $lineController = new LineController();
+          $userQuestion = $lineController -> getUserInputQuestion($studentId);
+          $lineController = new LineController();
+          $botAnswer = $lineController -> getBotInputQuestion($studentId);
+          $questionsController = new QuestionsController();
+          $questionResponse = $questionsController -> insertQuestionData($studentId, "1", $userQuestion);
+          $questionAdd = $questionsController -> updateAnswer($questionResponse["questionIndex"], "0", $userQuestion, $studentId, $botAnswer, "test");
         } elseif ($postbackData === 'action=confirm&response=q_no') {
-          $sample = "sample";
-          $flexMessage = requestAnswerFlexMessageBuilder($sample);
+          $lineController = new LineController();
+          $lineController->insertConversation($studentId, "bot", "text", "先生に送信してみよう！", "question-bot", "2");
+          error_log(print_r($studentId , true) . "\n", 3, dirname(__FILE__) . '/debugA.log');
+          $lineController = new LineController();
+          $userQuestion = $lineController -> getUserInputQuestion($studentId);
+          error_log(print_r($userQuestion, true) . "\n", 3, dirname(__FILE__) . '/debugA.log');
+          $flexMessage = requestAnswerFlexMessageBuilder($userQuestion);
           // error_log(print_r($flexMessage, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
           // $flexMessageBuilder = new FlexMessageBuilder("この質問で間違いないですか？", $flexMessage);
           $responseMessage->add($flexMessage);
         } elseif ($postbackData === 'action=confirm&response=t_yes') {
           $responseMessage->add(new TextMessageBuilder('先生に質問しています！返信が来るまでもう少し待ってね🧐'));
-        } elseif ($postbackData === 'action=confirm&response=q_no') {
+        } elseif ($postbackData === 'action=confirm&response=t_no') {
           $responseMessage->add(new TextMessageBuilder('わかりました！新しい質問があればいつでも聞いてくださいね！😊'));
+          $lineController = new LineController();
+          $lineController->insertConversation($studentId, "student", "text", "質問を終了", "question-finish", "2");
+          $lineController->insertConversation($studentId, "bot", "text", $responseMessage, "question-finish", "2");
         } elseif ($postbackData === 'キャンセル') {
           $responseMessage->add(new TextMessageBuilder('わかりました！新しい質問があればいつでも聞いてくださいね！😊'));
+          $lineController = new LineController();
+          $lineController->insertConversation($studentId, "student", "text", "キャンセル", "question-finish", "2");
+          $lineController->insertConversation($studentId, "bot", "text", $responseMessage, "question-finish", "2");
         } else {
           // ボタン以外のPostbackデータには反応しない
           http_response_code(400);
@@ -179,7 +204,9 @@ class BotController
   {
     $replyMessages = new MultiMessageBuilder();
     $replyMessages->add(new TextMessageBuilder("友達追加ありがとう！"));
-    $replyMessages->add(new StickerMessageBuilder(1, 1));
+    // $replyMessages->add(new StickerMessageBuilder(1, 1));
+    $flexMessage = FollowFlexMessageBuilder();
+    $replyMessages->add($flexMessage);
     return $replyMessages;
   }
 
@@ -196,8 +223,8 @@ class BotController
     // セッションIDを元にセッションの状態を取得
     $sessionId = 'session_' . $studentId;
     $sessionData = isset($_SESSION[$sessionId]) ? $_SESSION[$sessionId] : array();
-    error_log(print_r($sessionId, true) . "\n", 3, dirname(__FILE__) . '/debug_session.log');
-    error_log(print_r($userMessage, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
+    // error_log(print_r($sessionId, true) . "\n", 3, dirname(__FILE__) . '/debug_session.log');
+    // error_log(print_r($userMessage, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
     $userId = $event->getuserId();
     $messageType = "text";
     $contextName = "";
@@ -207,55 +234,79 @@ class BotController
     // セッションの状態に応じて適切な処理を行う
     if ($userMessage === '質問があります') {
       // 新しいセッションを開始
+      error_log("ほげほげ". "\n", 3, dirname(__FILE__).'/debugA.log');
       $contextName = "question-start";
-      error_log(print_r("質問開始", true) . "\n", 3, dirname(__FILE__) . '/debug.log');
       $lineController->insertConversation($userId, "student", $messageType, $userMessage, $contextName, $lifespanCount);
+      // error_log(print_r("質問開始", true) . "\n", 3, dirname(__FILE__) . '/debug.log');
       $_SESSION[$sessionId] = array('state' => 'initial');
       // 「質問があります」という学生の最初のメッセージに対して返答を生成
       // $generatedText = 'こんにちは！データサイエンス入門' + $type + '第' + $number + '回講義の質問を受付中です！質問を具体的に書いてもらえる？😊';
       $generatedText = 'こんにちは！データサイエンス入門の質問を受付中です！質問を具体的に書いてもらえる？😊';
-      error_log(print_r($generatedText, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
+      // error_log(print_r($generatedText, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
+      $lineController->insertConversation($userId, "bot", $messageType, $generatedText, $contextName, $lifespanCount);
       $replyMessages->add(new TextMessageBuilder($generatedText));
+            // error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__) . '/debugA.log');
     } elseif ($userMessage === '質問を終了') {
       // セッション終了
+      $contextName = "question-finish";
+      $lineController->insertConversation($userId, "student", $messageType, $userMessage, $contextName, $lifespanCount);
       unset($_SESSION[$sessionId]);
       $generatedText = '質問対応を終了しました。新しい質問があればいつでも聞いてくださいね！😊';
+      $lineController->insertConversation($userId, "bot", $messageType, $generatedText, $contextName, $lifespanCount);
       $replyMessages->add(new TextMessageBuilder($generatedText));
     } elseif ($userMessage === 'キャンセル') {
       // フレックスメッセージの処理
+      $contextName = "question-finish";
+      $lineController->insertConversation($userId, "student", $messageType, $userMessage, $contextName, $lifespanCount);
       unset($_SESSION[$sessionId]);
       $generatedText = 'わかりました。また質問があればいつでも聞いてくださいね！😊';
+      $lineController->insertConversation($userId, "bot", $messageType, $generatedText, $contextName, $lifespanCount);
       $replyMessages->add(new TextMessageBuilder($generatedText));
     } elseif ($userMessage === '質問を送信') {
       // フレックスメッセージの処理
+      $contextName = "throw-teacher";
       $generatedText = '質問を先生に送信したよ！回答まで時間がかかるかもしれないけど待っててね！';
+      $lineController->insertConversation($userId, "bot", $messageType, $generatedText, $contextName, $lifespanCount);
       $replyMessages->add(new TextMessageBuilder($generatedText));
+
+      $lineController = new LineController();
+      $userQuestion = $lineController -> getUserInputQuestion($userId);
+      $questionsController = new QuestionsController();
+      $questionResponse = $questionsController -> insertQuestionData($userId, "1", $userQuestion);
+      error_log(print_r($questionResponse["questionIndex"], true) . "\n", 3, dirname(__FILE__) . '/debugA.log');
+
       // 教員・TAに通知
       $user_question_log = "userId";
       $response = "sample";
       // include(dirname(__FILE__)."/../api/v2/controllers/questions.php");
       // $questionsController = new QuestionsController();
       // $response = $questionsController -> insertQuestionData($userId, $user_question_log);
-      $payload = array('message' => $user_question_log, 'index' => $response["QAIndex"]);
-      error_log(print_r($payload, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
-      //echo callbackToSusanPro("question", $payload);
-      echo sendEmailToInstructors("newQuestion", $user_question_log, "5");
+      $payload = array('message' => $userQuestion, 'index' => $questionResponse["questionIndex"]);
+      // error_log(print_r($payload, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
+      //なにこれecho callbackToSusanPro("question", $payload);
+      // データベース登録の方でメール送ってたecho sendEmailToInstructors("newQuestion", $userQuestion, $questionResponse["QAIndex"]);
       // $replyMessages->add(sentQuestionFlexMessage($response["QAIndex"]));
-      $replyMessages->add(sentQuestionFlexMessage("5"));
-      error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
-    } else {
+      $replyMessages->add(sentQuestionFlexMessage($questionResponse["questionIndex"]));
+      // error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__) . '/debug_message.log');
+    } elseif ($userMessage === "システムの使い方を教えて") {
+      $setMessageToDB = "使い方を確認";
+      $flexMessage = howToUseFlexMessage();
+      $replyMessages->add($flexMessage);
+    }else {
       // 送られたテキストをデータベースに登録
-      error_log("あいうえお", 3, dirname(__FILE__) . '/debugevent.log');
+      
       $contextName = "question";
       $lineController->insertConversation($userId, "student", $messageType, $userMessage, $contextName, $lifespanCount);
-      error_log(print_r($event, true) . "\n", 3, dirname(__FILE__) . '/debugevent.log');
+      // error_log(print_r($event, true) . "\n", 3, dirname(__FILE__) . '/debugevent.log');
 
       // セッション中の処理（質問に対する応答など）
+      // error_log(print_r($event, true) . "\n", 3, dirname(__FILE__) . '/debugA.log');
       $generatedText = makereply($event);
+      $lineController->insertConversation($userId, "bot", $messageType, $generatedText, $contextName, $lifespanCount);
       if (preg_match("/先生に聞いてみようか🤔/", $generatedText)) {
-        error_log(print_r($userMessage, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
+        // error_log(print_r($userMessage, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
         $flexMessage = requestAnswerFlexMessageBuilder($userMessage);
-        error_log(print_r($flexMessage, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
+        // error_log(print_r($flexMessage, true) . "\n", 3, dirname(__FILE__) . '/debug.log');
         // $flexMessageBuilder = new FlexMessageBuilder("この質問で間違いないですか？", $flexMessage);
         $replyMessages->add($flexMessage);
       } else {
@@ -270,7 +321,7 @@ class BotController
       // $responseMessage = generateResponse($userMessage);
     }
 
-    error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__) . '/debug_reply.log');
+    // error_log(print_r($replyMessages, true) . "\n", 3, dirname(__FILE__) . '/debug_reply.log');
     // $replyMessages->add(new StickerMessageBuilder(1, 2));
     return $replyMessages;
   }
