@@ -199,6 +199,29 @@ const HomePage = () => {
 							</div>
 						</section>
 
+						<section className='w-full flex flex-col gap-2 items-start'>
+							<div className='w-full flex space-x-4'>
+								{[
+									{
+										value: false,
+										displayText: "実験参加に同意する",
+									}
+								].map((button, index) => (
+									<TileRadioButton
+										key={index}
+										id={index}
+										name='canAnswer'
+										value={button.value}
+										displayText="質問のみ利用する"
+										onChange={() =>
+											setCanAnswer(
+												button.value as UserRegistrationPayload["canAnswer"]
+											)
+										}
+									/>
+								))}
+							</div>
+						</section>
 						{/* <section className='w-full flex flex-col gap-2 items-start'>
 							<h2 className='text-lg font-bold'>
 								回答に協力していただけますか？
