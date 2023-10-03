@@ -1,16 +1,53 @@
 <?php
 use GuzzleHttp\Client;
 
-// class gptreply
-// {
+
+function createCompletion($request)
+{
+  // urlを指定
+  $apiUrl = 'https://api.openai.com/v1/chat/completions';
+  // リクエストヘッダー
+  $headers = array(
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . getenv("OPENAI_API_KEY")
+  );
+  
+  // cURLセッションを初期化
+  $ch = curl_init($apiUrl);
+  
+  // cURLオプションを設定
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($request));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+  
+  // cURLリクエストを実行
+  $gptresponse = curl_exec($ch);
+
+  // エラーチェック
+  if ($gptresponse === false) {
+    error_log(print_r(curl_error($ch), true) . "\n", 3, dirname(__FILE__).'/debugA.log');
+    throw new ErrorException("curlによる失敗");
+  }
+
+  // APIからのレスポンスを取得する
+  $result = json_decode($gptresponse, true);
+
+  // 生成されたテキストを取得する
+  $generatedText = $result['choices'][0]['message']['content'];
+
+  return $generatedText;
+}
+
+
 function makereply($event)
 {
+  error_log(print_r($event, true) . "\n", 3, dirname(__FILE__).'/debugA.log');
   // 初期メッセージを格納
   $generatedText = "すいません，よくわかりませんでした🤔";
   // 自動回答判定フラグ
   $autoreply_flag = false;
-  // urlを指定
-  $apiUrl = 'https://api.openai.com/v1/chat/completions';
+
   // GPTによる質問のジャンル分け
   $data = [
     'model' => 'gpt-3.5-turbo',
@@ -46,21 +83,12 @@ function makereply($event)
     'max_tokens' => 500,
   ];
 
-  // Guzzleを使ってAPIにリクエストを送信する
-  $client = new Client();
-  $gptresponse = $client->post($apiUrl, [
-  'headers' => [
-    'Content-Type' => 'application/json',
-    'Authorization' => 'Bearer ' . getenv("OPENAI_API_KEY"),
-    ],
-  'json' => $data,
-  ]);
+  try {
+    $generatedText = createCompletion($data);
+  }catch (Exception $e){
+    error_log(print_r($e, true) . "\n", 3, dirname(__FILE__).'/debug.log');
+  }
 
-  // APIからのレスポンスを取得する
-  $result = json_decode($gptresponse->getBody()->getContents(), true);
-  // 生成されたテキストを取得する
-  $generatedText = $result['choices'][0]['message']['content'];
-  
   if (preg_match("/プログラム自体に関する質問/", $generatedText) || preg_match("/データの前処理に関する質問/", $generatedText) || preg_match("/エラーに関する質問/", $generatedText))
   {
     $autoreply_flag = True;
@@ -87,25 +115,17 @@ function makereply($event)
       ],
       'max_tokens' => 500,
     ];
-    // Guzzleを使ってAPIにリクエストを送信する
-    $client = new Client();
-    $gptresponse = $client->post($apiUrl, [
-    'headers' => [
-      'Content-Type' => 'application/json',
-      'Authorization' => 'Bearer ' . getenv("OPENAI_API_KEY"),
-      ],
-    'json' => $data,
-    ]);
-    // APIからのレスポンスを取得する
-    $result = json_decode($gptresponse->getBody()->getContents(), true);
-    // 生成されたテキストを取得する
-    $generatedText = $result['choices'][0]['message']['content'];
+    try {
+      $generatedText = createCompletion($data);
+    }catch (Exception $e){
+      error_log(print_r($e, true) . "\n", 3, dirname(__FILE__).'/debug.log');
+    }
   } else {
     $generatedText = "先生に聞いてみようか🤔";
   }
 
   // デバッグ
-  error_log(print_r($result, true) . "\n", 3, dirname(__FILE__).'/debug_event.log');
-  error_log(print_r($generatedText, true) . "\n", 3, dirname(__FILE__).'/debug_event.log');
+  // error_log(print_r($result, true) . "\n", 3, dirname(__FILE__).'/debugA.log');
+  error_log(print_r($generatedText, true) . "\n", 3, dirname(__FILE__).'/debugA.log');
   return $generatedText;
 }

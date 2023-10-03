@@ -178,7 +178,7 @@ class DiscussionsController
    * @param string $messageType chat/answer
    * @param string $message
    */
-  private function setDiscussionMessage($questionIndex, $userId, $userType, $isUsersQuestion, $messageType, $message) {
+  public function setDiscussionMessage($questionIndex, $userId, $userType, $isUsersQuestion, $messageType, $message) {
     $db = new DB();
     $pdo = $db -> pdo();
 

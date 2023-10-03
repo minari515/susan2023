@@ -2,7 +2,7 @@
 ini_set('display_errors', 1);
 
 /**
- * LINEのユーザ情報・対話ログのコントローラー
+ * LINE�̃��[�U���E�Θb���O�̃R���g���[���[
  */
 class TestController
 {
@@ -18,33 +18,13 @@ class TestController
 
   /**************************************************************************** */
   /**
-   * GETメソッド
+   * GET���\�b�h
    * @param array $args
-   * @return array レスポンス
+   * @return array ���X�|���X
    */
   public function get($args)
   {
-    $this->code = 400;
-    return ["error" => [
-      "type" => "invalid_access"
-    ]];
-  }
-
-  /**************************************************************************** */
-  /**
-   * POSTメソッド
-   * @param array $args
-   * @return array レスポンス
-   */
-  public function post($args)
-  {
-    $post = $this->request_body;
-    switch ($args[0]) {
-      default:
-        $this->code = 400;
-        return ["error" => [
-          "type" => "invalid_access"
-        ]];
-    }
+    $this->code = 200;
+    return ["good" => "yeah"];
   }
 }
