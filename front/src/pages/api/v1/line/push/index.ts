@@ -10,18 +10,15 @@ const LinePushMessageHandler = async (
 	if (req.method === "GET") {
 		res.status(200).json({ message: "active!" });
 	} else if (req.method === "POST"){
-		console.log(typeof req.body);
-		let {userIds, broadcast, event}: PushLineMessagePayload = req.body;
-		if (typeof req.body === "object"){
-			[userIds, broadcast, event] = req.body;
-		} else if (typeof req.body === "string") {
-			[userIds, broadcast, event] = JSON.parse(req.body);
-		}
-		// const {userIds, broadcast, event} = req.body as PushLineMessagePayload;
+		const payload : PushLineMessagePayload = req.body;
+		console.log(typeof payload);
+
+		const {userIds, broadcast, event} = payload;
 
 		console.log(userIds);
 		console.log(broadcast);
 		console.log(event);
+
 		if (!userIds.length && !broadcast) {
 			res.status(400).json({ error: "userId is required" });
 			return;
