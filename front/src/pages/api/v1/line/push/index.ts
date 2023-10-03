@@ -12,6 +12,8 @@ const LinePushMessageHandler = async (
 	} else if (req.method === "POST"){
 		const {userIds, broadcast, event} = req.body;
 		// const {userIds, broadcast, event} = req.body as PushLineMessagePayload;
+		console.log(req);
+		console.log(req.body);
 		console.log(req.body.userIds);
 		console.log(req.body.broadcast);
 		console.log(req.body.event);
