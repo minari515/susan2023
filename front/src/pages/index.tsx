@@ -199,7 +199,7 @@ const HomePage = () => {
 							</div>
 						</section>
 
-						<section className='w-full flex flex-col gap-2 items-start'>
+						{/* <section className='w-full flex flex-col gap-2 items-start'>
 							<h2 className='text-lg font-bold'>
 								回答に協力していただけますか？
 							</h2>
@@ -242,7 +242,7 @@ const HomePage = () => {
 									/>
 								))}
 							</div>
-						</section>
+						</section> */}
 					</div>
 
 					<div className='flex gap-4 items-center my-10'>
