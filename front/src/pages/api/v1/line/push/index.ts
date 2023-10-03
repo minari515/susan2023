@@ -7,13 +7,10 @@ const LinePushMessageHandler = async (
 	req: NextApiRequest,
 	res: NextApiResponse
 ) => {
-	switch (req.method) {
-		case "GET":
-			res.status(200).json({ message: "active!" });
-			break;
-
-		case "POST":
-			const body = req.body as PushLineMessagePayload;
+	if (req.method === "GET") {
+		res.status(200).json({ message: "active!" });
+	} else if (req.method === "POST"){
+		const body = req.body as PushLineMessagePayload;
 			if (!body.userIds.length && !body.broadcast) {
 				res.status(400).json({ error: "userId is required" });
 				return;
@@ -32,12 +29,9 @@ const LinePushMessageHandler = async (
 			} else {
 				res.status(400).json({ error: "event type is invalid" });
 			}
-			break;
-
-		default:
-			res.setHeader("Allow", ["GET", "POST"]);
-			res.status(405).end(`Method ${req.method} Not Allowed`);
-			break;
+	} else {
+		res.setHeader("Allow", ["GET", "POST"]);
+		res.status(405).end(`Method ${req.method} Not Allowed`);
 	}
 };
 export default LinePushMessageHandler;
