@@ -10,6 +10,26 @@ const nextConfig = {
 	},
 	distDir: "build",
 	optimizeFonts: true,
+	// 全ての API routes にマッチ
+	async headers() {
+		return [
+			{
+				source: "/api/:path*",
+				headers: [
+					{
+						// 許可するメソッド
+						key: "Access-Control-Allow-Methods",
+						value: "GET,OPTIONS,POST",
+					},
+					{
+						// 許可するリクエストヘッダ
+						key: "Access-Control-Allow-Headers",
+						value: "Content-Type",
+					},
+				],
+			},
+		];
+	},
 };
 
 module.exports = nextConfig;
