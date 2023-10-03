@@ -209,6 +209,7 @@ class BotController
       // 新しいセッションを開始
       $contextName = "question-start";
       error_log(print_r("質問開始", true) . "\n", 3, dirname(__FILE__) . '/debug.log');
+      $lineController->insertConversation($userId, "student", $messageType, $userMessage, $contextName, $lifespanCount);
       $_SESSION[$sessionId] = array('state' => 'initial');
       // 「質問があります」という学生の最初のメッセージに対して返答を生成
       // $generatedText = 'こんにちは！データサイエンス入門' + $type + '第' + $number + '回講義の質問を受付中です！質問を具体的に書いてもらえる？😊';

@@ -439,7 +439,7 @@ class QuestionsController
    * @param string $question_text 質問文
    * @return array 結果
    */
-  private function insertQuestionData($userId, $lectureNumber, $questionText)
+  public function insertQuestionData($userId, $lectureNumber, $questionText)
   {
     $db = new DB();
     $pdo = $db->pdo();
