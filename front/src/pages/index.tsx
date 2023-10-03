@@ -74,7 +74,7 @@ const HomePage = () => {
 						<section className='max-w-full flex flex-col gap-2 items-start'>
 							<h2 className='text-lg font-bold'>実験概要</h2>
 							<p className='indent-4'>
-								「2022年度データサイエンス入門A/B」の講義における質問を，任意のタイミングでチャットボットに送信してください．
+								「2023年度データサイエンス入門A/B」の講義における質問を，任意のタイミングでチャットボットに送信してください．
 								質問文を
 								<span className='font-bold underline underline-offset-[-3px] decoration-4 decoration-sky-500/50'>
 									ボットを仲介して教員や回答に協力していただける学生方に匿名で送信
