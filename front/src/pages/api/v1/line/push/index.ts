@@ -11,7 +11,7 @@ const LinePushMessageHandler = async (
 		res.status(200).json({ message: "active!" });
 	} else if (req.method === "POST"){
 		const body = req.body as PushLineMessagePayload;
-		console.log(body.userIds);
+		console.log(body);
 		if (!body.userIds.length && !body.broadcast) {
 			res.status(400).json({ error: "userId is required" });
 			return;
