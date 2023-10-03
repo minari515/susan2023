@@ -11,24 +11,25 @@ const LinePushMessageHandler = async (
 		res.status(200).json({ message: "active!" });
 	} else if (req.method === "POST"){
 		const body = req.body as PushLineMessagePayload;
-			if (!body.userIds.length && !body.broadcast) {
-				res.status(400).json({ error: "userId is required" });
-				return;
-			}
-			if (!body.event) {
-				res.status(400).json({ error: "message event is required" });
-				return;
-			}
-			// event handling
-			if (body.event.type == "response" || body.event.type == "answer") {
-				const pushResponse = await pushResponseMessage(body);
-				res.status(200).json({ pushResponse });
-			} else if (body.event.type == "announce") {
-				await pushAnnounceMessage(body);
-				res.status(200).json({ message: "success" });
-			} else {
-				res.status(400).json({ error: "event type is invalid" });
-			}
+		console.log(body.userIds);
+		if (!body.userIds.length && !body.broadcast) {
+			res.status(400).json({ error: "userId is required" });
+			return;
+		}
+		if (!body.event) {
+			res.status(400).json({ error: "message event is required" });
+			return;
+		}
+		// event handling
+		if (body.event.type == "response" || body.event.type == "answer") {
+			const pushResponse = await pushResponseMessage(body);
+			res.status(200).json({ pushResponse });
+		} else if (body.event.type == "announce") {
+			await pushAnnounceMessage(body);
+			res.status(200).json({ message: "success" });
+		} else {
+			res.status(400).json({ error: "event type is invalid" });
+		}
 	} else {
 		res.setHeader("Allow", ["GET", "POST"]);
 		res.status(405).end(`Method ${req.method} Not Allowed`);
