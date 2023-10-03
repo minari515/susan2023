@@ -10,7 +10,8 @@ const LinePushMessageHandler = async (
 	if (req.method === "GET") {
 		res.status(200).json({ message: "active!" });
 	} else if (req.method === "POST"){
-		const {userIds, broadcast, event} = req.body as PushLineMessagePayload;
+		const {userIds, broadcast, event} = req.body;
+		// const {userIds, broadcast, event} = req.body as PushLineMessagePayload;
 		console.log(req.body.userIds);
 		console.log(req.body.broadcast);
 		console.log(req.body.event);
