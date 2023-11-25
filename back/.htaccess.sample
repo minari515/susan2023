@@ -1,0 +1,5 @@
+# 見られたくないファイルの拡張子
+
+<Files ~ ".(env)$">
+deny from all
+</Files>
