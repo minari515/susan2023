@@ -34,7 +34,7 @@ function sendEmailToInstructors($type, $messageText, $questionIndex)
 
   $headers = "From: noreply@susan.next.jp";
 
-  return mb_send_mail("yoshino@wakayama-u.ac.jp", $subject, $message, $headers);
+  return mb_send_mail("s246276@wakayama-u.ac.jp", $subject, $message, $headers);
 }
 
 /**
@@ -69,7 +69,7 @@ function sendEmailToInstructorsWhithLogs($type, $messageText, $questionIndex, $u
 
   $headers = "From: noreply@susan.next.jp";
 
-  return mb_send_mail("yoshino@wakayama-u.ac.jp", $subject, $message, $headers);
+  return mb_send_mail("s246276@wakayama-u.ac.jp", $subject, $message, $headers);
 }
 
 // echo sendEmailToInstructors("newquestion", "user_question_log", "5");
