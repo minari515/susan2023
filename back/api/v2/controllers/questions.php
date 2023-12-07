@@ -463,8 +463,6 @@ class QuestionsController
         ]];
       }
 
-      error_log(print_r($lastIndexQA, true) . "\n", 3, dirname(__FILE__) . '/debugA.log');
-
       /* // mysqlの実行文の記述
       $stmtThread = $pdo -> prepare(
         "INSERT INTO Discussions (questionIndex, userId, userType, isQuestionersMessage, messageType, message)

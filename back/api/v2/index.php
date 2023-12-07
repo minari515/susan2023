@@ -1,4 +1,5 @@
 <?php
+// error_log("hogehoge", 3, dirname(__FILE__).'/debug.log');
 // ini_set('display_errors',1);
 
 
@@ -27,17 +28,17 @@ if(file_exists($file_path)){
   include($file_path);
   $class_name = ucfirst($file)."Controller"; // $file(文字列)の最初の一文字を大文字へ変換+"Controller"(命名規則)
   $method_name = strtolower($_SERVER["REQUEST_METHOD"]); // get||post||put||delete||options
-  error_log(print_r($method_name, true) . "\n", 3, dirname(__FILE__).'/debug.log');
+  // error_log(print_r($method_name, true) . "\n", 3, dirname(__FILE__).'/debug.log');
   $object = new $class_name(); // クラスのインスタンスの生成
   //$response = json_encode($object->$method_name(...$paths)); //TO DO: スプレッド構文はphp ver.5.6系で使えないので泣く泣く配列を渡すことに
   //$response = json_encode($object->$method_name($paths)); // 該当コントローラにある$method_nameと同名のメソッドを呼び出し，その返り値をjsonとして$responseへ
-  error_log(print_r(ini_get("curl.cainfo"), true) . "\n", 3, dirname(__FILE__).'/debug.log');
+  // error_log(print_r(ini_get("curl.cainfo"), true) . "\n", 3, dirname(__FILE__).'/debug.log');
   try {
     $response = json_encode($object->$method_name($paths));
   } catch (Exception $e) {
     error_log(print_r($e, true) . "\n", 3, dirname(__FILE__).'/debug.log');
   }
-  //error_log("hogehoge", 3, dirname(__FILE__).'/debug.log');
+  
   //error_log(print_r($response, true) . "\n", 3, dirname(__FILE__).'/debug.log');
   // 該当コントローラの決めたHTTPステータスコードを受け取る
   if(!$object->code){
