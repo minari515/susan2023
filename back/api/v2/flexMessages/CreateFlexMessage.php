@@ -598,54 +598,128 @@ function QandAFlexContainer($QuestionId, $QuestionText, $AnswerText){
   return $flexContainer;
 }
 
+// /**
+//  * チャットを表示したFlexメッセージ(バブル)を生成する
+//  * @param string $ChatText 回答文
+//  * @return \LINE\LINEBot\MessageBuilder\Flex\ContainerBuilder\BubbleContainerBuilder $flexContainer
+//  */
+// function ChatFlexContainer($QuestionId, $ChatText){
+//   ####### Header要素 ##############
+//   // メッセージのタイトル
+//   $q_title_jp = new TextComponentBuilder("💬新しいメッセージ");
+//   $q_title_jp -> setSize('lg');
+//   $q_title_jp -> setWeight('bold');
+//   $q_title_jp -> setAlign('center');
+//   $q_title_jp  -> setColor('#FFFFFF');
+
+//   $q_titleBox = new BoxComponentBuilder('vertical',[$q_title_jp]);
+
+//   // ヘッダーの設定
+//   $HeaderBox = new BoxComponentBuilder('vertical',[$q_titleBox]);
+//   $HeaderBox -> setBackgroundColor('#284275');
+
+//   ####### Body要素 ##############
+//   // メッセージ
+//   $chat_text = new TextComponentBuilder($ChatText);
+//   $chat_text -> setSize('lg');
+//   $chat_text -> setWeight('bold');
+//   $chat_text -> setWrap(true);
+
+//   // ボディの設定
+//   $BodyBox = new BoxComponentBuilder('vertical',[$chat_text]);
+//   $BodyBox -> setBackgroundColor('#FFFFFF');
+  
+//   ####### Footer要素 ##############
+//   $actionUrl = 'https://susan2023-five.vercel.app/question/'.$QuestionId;
+//   // urlリンクをボタンで表示
+//   $urlAction = new UriTemplateActionBuilder('詳細へ', $actionUrl);
+//   // ボタンを作ってアクションを載せる
+//   $linkButton = new ButtonComponentBuilder($urlAction);
+
+//   // ボタンを垂直に並べてボックスに格納
+//   $footerBox = new BoxComponentBuilder('vertical', [$linkButton]);
+
+//   // FlexMessage１つ分(バブル)を作って先程のボックスをそれぞれHeaderとBodyに格納
+//   $flexContainer = new BubbleContainerBuilder();
+//   $flexContainer -> setHeader($HeaderBox);
+//   $flexContainer -> setBody($BodyBox);
+//   $flexContainer -> setFooter($footerBox);
+
+//   return $flexContainer;
+// }
+
 /**
- * チャットを表示したFlexメッセージ(バブル)を生成する
- * @param string $ChatText 回答文
- * @return \LINE\LINEBot\MessageBuilder\Flex\ContainerBuilder\BubbleContainerBuilder $flexContainer
+ * 自動回答できない質問を教員に送信することを提案するメッセージ
+ * 
+ * @param string $QuestionText 入力された質問文
+ * @return FlexMessageBuilder $flexMessage 質問送信を促すFlexメッセージ
  */
-function ChatFlexContainer($QuestionId, $ChatText){
+function ChatFlexContainer($QuestionText){
+  // バブル(１つのメッセージ)
+  $flexContainer = new BubbleContainerBuilder();
+
   ####### Header要素 ##############
-  // メッセージのタイトル
-  $q_title_jp = new TextComponentBuilder("💬新しいメッセージ");
-  $q_title_jp -> setSize('lg');
-  $q_title_jp -> setWeight('bold');
-  $q_title_jp -> setAlign('center');
-  $q_title_jp  -> setColor('#FFFFFF');
+  // 太字のテキスト要素を作る
+  $titleText = new TextComponentBuilder("botの回答です🤖");
+  $titleText -> setWeight('bold');
+  $titleText -> setSize('lg');
+  $titleText -> setColor('#FFFFFF');
 
-  $q_titleBox = new BoxComponentBuilder('vertical',[$q_title_jp]);
+  // 通常のテキスト要素を作る
+  $planeText1 = new TextComponentBuilder("回答を確認して質問が解決するか確かめてみてください！");
+  $planeText1 -> setWrap(true);
+  $planeText1  -> setColor('#FFFFFF');
 
-  // ヘッダーの設定
-  $HeaderBox = new BoxComponentBuilder('vertical',[$q_titleBox]);
-  $HeaderBox -> setBackgroundColor('#284275');
+  $planeText2 = new TextComponentBuilder("解決しなかった場合は先生に聞いてみよう🙋🏻‍♂️");
+  $planeText2 -> setWrap(true);
+  $planeText2  -> setColor('#FFFFFF');
+
+  // 先程のテキスト要素を垂直に並べてボックスに格納
+  $headerBox = new BoxComponentBuilder('vertical',[$titleText, $planeText1, $planeText2]);
+  $headerBox->setBackgroundColor("#284275");
+
+  // バブルのHeader要素にセット
+  $flexContainer -> setHeader($headerBox);
 
   ####### Body要素 ##############
-  // メッセージ
-  $chat_text = new TextComponentBuilder($ChatText);
-  $chat_text -> setSize('lg');
-  $chat_text -> setWeight('bold');
-  $chat_text -> setWrap(true);
+  // テキスト要素を作る
+  $captionText = new TextComponentBuilder("botの回答");
+  $captionText -> setSize('xs');
+  $captionText -> setAlign("center");
+  $captionText -> setColor("#B4B4B4");
+  $captionText -> setOffsetBottom("md");
 
-  // ボディの設定
-  $BodyBox = new BoxComponentBuilder('vertical',[$chat_text]);
-  $BodyBox -> setBackgroundColor('#FFFFFF');
-  
-  ####### Footer要素 ##############
-  $actionUrl = 'https://susan2023-five.vercel.app/question/'.$QuestionId;
-  // urlリンクをボタンで表示
-  $urlAction = new UriTemplateActionBuilder('詳細へ', $actionUrl);
-  // ボタンを作ってアクションを載せる
-  $linkButton = new ButtonComponentBuilder($urlAction);
+  // 通常のテキスト要素を作る
+  $mainText = new TextComponentBuilder($QuestionText);
+  $mainText -> setWrap(true);
 
-  // ボタンを垂直に並べてボックスに格納
-  $footerBox = new BoxComponentBuilder('vertical', [$linkButton]);
+  // 先程のテキスト要素を垂直に並べてボックスに格納
+  $bodyBox = new BoxComponentBuilder('vertical',[$captionText, $mainText]);
 
-  // FlexMessage１つ分(バブル)を作って先程のボックスをそれぞれHeaderとBodyに格納
-  $flexContainer = new BubbleContainerBuilder();
-  $flexContainer -> setHeader($HeaderBox);
-  $flexContainer -> setBody($BodyBox);
-  $flexContainer -> setFooter($footerBox);
+  // バブルのBody要素にセット
+  $flexContainer -> setBody($bodyBox);
 
-  return $flexContainer;
+  // ####### Footer要素 ################
+  // // ボタンを押した際のアクションを設定
+  // $sendAction = new MessageTemplateActionBuilder('このまま先生に送る', "質問を送信");
+  // $rewriteAction = new MessageTemplateActionBuilder('書き直す', "書き直す");
+  // $cancelAction = new MessageTemplateActionBuilder('質問しない', "キャンセル");
+
+  // // ボタンを作ってアクションを載せる
+  // $sendButton = new ButtonComponentBuilder($sendAction);
+  // $rewriteButton = new ButtonComponentBuilder($rewriteAction);
+  // $cancelButton = new ButtonComponentBuilder($cancelAction);
+
+  // // ボタンを水平に並べてボックスに格納
+  // $footerBox = new BoxComponentBuilder('vertical',[$sendButton, $rewriteButton, $cancelButton]);
+
+  // $flexContainer -> setFooter($footerBox);
+
+  ########### ビルドして完成 ##################
+  // FlexMessageとしてビルド
+  $flexMessage = new FlexMessageBuilder('先生に質問してみますか？',$flexContainer);
+
+  return $flexMessage;
 }
 
 /**

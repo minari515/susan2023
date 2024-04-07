@@ -102,6 +102,10 @@ class BotController
   private function webhook($requestBody, $signature)
   {
     $response = null;
+    // 授業が第何回であるかの変数
+    $number = "2";
+    // 授業タイプ（Introduction or Invitation）
+    $type = "Invitation";
 
     try {
       // LINEBotが受信したイベントオブジェクトを受け取る
@@ -130,7 +134,7 @@ class BotController
       try {
           if ($eventType === 'message') {
               // メッセージイベント
-              $replyMessages = $this->handleMessageEvent($event, $studentId);
+              $replyMessages = $this->handleMessageEvent($event, $studentId, $number, $type);
           } else if ($eventType === 'follow') {
               // フォローイベント(友達追加・ブロック解除時)
               $replyMessages = $this->handleFollowEvent($event);
@@ -139,7 +143,7 @@ class BotController
               $postbackData = $jsonData['events'][0]['postback']['data'];
   
               // ユーザの選択に応じて返答を生成
-              $replyMessages = $this->handlePostbackData($postbackData, $studentId);
+              $replyMessages = $this->handlePostbackData($postbackData, $studentId, $number);
           } else {
               continue;
           }
@@ -162,7 +166,7 @@ class BotController
   
   }
 
-  private function handlePostbackData($postbackData, $studentId) {
+  private function handlePostbackData($postbackData, $studentId, $number) {
     $responseMessage = new MultiMessageBuilder();
 
     if ($postbackData === 'action=confirm&response=q_yes') {
@@ -174,7 +178,7 @@ class BotController
       $lineController = new LineController();
       $botAnswer = $lineController -> getBotInputQuestion($studentId);
       $questionsController = new QuestionsController();
-      $questionResponse = $questionsController -> insertQuestionData($studentId, "1", $userQuestion);
+      $questionResponse = $questionsController -> insertQuestionData($studentId, $number, $userQuestion);
       $questionAdd = $questionsController -> updateAnswer($questionResponse["questionIndex"], "0", $userQuestion, $studentId, $botAnswer, "test");
     } elseif ($postbackData === 'action=confirm&response=q_no') {
       $lineController = new LineController();
@@ -218,11 +222,9 @@ class BotController
     return $replyMessages;
   }
 
-  public function handleMessageEvent($event, $studentId)
+  public function handleMessageEvent($event, $studentId, $number, $type)
 {
     // 手動で設定
-    $type = "A";
-    $number = 1;
     $lifespanCount = "2"; //適当に設定してる
     $lineController = new LineController();
 
@@ -245,7 +247,11 @@ class BotController
             $lineController->insertConversation($userId, "student", "text", $userMessage, $contextName, 2);
             $_SESSION[$sessionId] = array('state' => 'initial');
 
-            $generatedText = 'こんにちは！データサイエンス入門の質問を受付中です！質問を具体的に書いてもらえる？😊';
+            if($type === "Introduction"){
+              $generatedText = 'こんにちは！データサイエンス入門の質問を受付中です！質問を具体的に書いてもらえる？😊';
+            } else {
+              $generatedText = 'こんにちは！データサイエンスへの誘いの質問を受付中です！質問を具体的に書いてもらえる？😊';
+            }
             $lineController->insertConversation($userId, "bot", "text", $generatedText, $contextName, 2);
             $replyMessages->add(new TextMessageBuilder($generatedText));
             break;
@@ -270,7 +276,7 @@ class BotController
             $lineController = new LineController();
             $userQuestion = $lineController->getUserInputQuestion($userId);
             $questionsController = new QuestionsController();
-            $questionResponse = $questionsController->insertQuestionData($userId, "1", $userQuestion);
+            $questionResponse = $questionsController->insertQuestionData($userId, $number, $userQuestion);
 
             $payload = array('message' => $userQuestion, 'index' => $questionResponse["questionIndex"]);
             echo sendEmailToInstructorsWhithLogs("newQuestion", $userQuestion, $questionResponse["questionIndex"], $userId);
@@ -293,8 +299,10 @@ class BotController
             if (preg_match("/先生に聞いてみようか🤔/", $generatedText)) {
                 $flexMessage = requestAnswerFlexMessageBuilder($userMessage);
                 $replyMessages->add($flexMessage);
+                // $replyMessages->add(ChatFlexContainer($generatedText));
+
             } else {
-                $replyMessages->add(new TextMessageBuilder($generatedText));
+                $replyMessages->add(ChatFlexContainer($generatedText));
 
                 $yes_confirm = new PostbackTemplateActionBuilder('はい', 'action=confirm&response=q_yes');
                 $no_confirm = new PostbackTemplateActionBuilder('いいえ', 'action=confirm&response=q_no');
