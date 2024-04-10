@@ -293,7 +293,11 @@ class BotController
             $contextName = "question";
             $lineController->insertConversation($userId, "student", "text", $userMessage, $contextName, 2);
 
-            $generatedText = makereply($event);
+            if($type === "Introduction"){
+              $generatedText = makeReplyIntroduction($event);
+            } else {
+              $generatedText = makeReplyInvitation($event);
+            }
             $lineController->insertConversation($userId, "bot", "text", $generatedText, $contextName, 2);
 
             if (preg_match("/先生に聞いてみようか🤔/", $generatedText)) {
