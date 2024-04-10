@@ -296,7 +296,7 @@ class BotController
             if($type === "Introduction"){
               $generatedText = makeReplyIntroduction($event);
             } else {
-              $generatedText = makeReplyInvitation($event);
+              $generatedText = makeReplyInvitation_typeA($event, $number);
             }
             $lineController->insertConversation($userId, "bot", "text", $generatedText, $contextName, 2);
 
