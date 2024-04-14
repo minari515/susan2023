@@ -102,8 +102,22 @@ class BotController
   private function webhook($requestBody, $signature)
   {
     $response = null;
+
     // 授業が第何回であるかの変数
-    $number = "2";
+    // 初期日付を設定
+    $startDate = new DateTime('2024-04-05');
+
+    // 現在の日付を取得
+    $now = new DateTime();
+    
+    // 2つの日付の差を計算
+    $interval = $startDate->diff($now);
+    
+    // 差を週数に変換．floor関数で小数点以下を切り捨て
+    // 1週間経過していても1週間とカウントされるように+1
+    // 週がずれる場合は+1を削除して調整
+    $weeksPassed = floor($interval->days / 7) + 1;
+
     // 授業タイプ（Introduction or Invitation）
     $type = "Invitation";
 
@@ -134,7 +148,7 @@ class BotController
       try {
           if ($eventType === 'message') {
               // メッセージイベント
-              $replyMessages = $this->handleMessageEvent($event, $studentId, $number, $type);
+              $replyMessages = $this->handleMessageEvent($event, $studentId, $weeksPassed, $type, $now);
           } else if ($eventType === 'follow') {
               // フォローイベント(友達追加・ブロック解除時)
               $replyMessages = $this->handleFollowEvent($event);
@@ -143,7 +157,7 @@ class BotController
               $postbackData = $jsonData['events'][0]['postback']['data'];
   
               // ユーザの選択に応じて返答を生成
-              $replyMessages = $this->handlePostbackData($postbackData, $studentId, $number);
+              $replyMessages = $this->handlePostbackData($postbackData, $studentId, $weeksPassed);
           } else {
               continue;
           }
@@ -222,7 +236,7 @@ class BotController
     return $replyMessages;
   }
 
-  public function handleMessageEvent($event, $studentId, $number, $type)
+  public function handleMessageEvent($event, $studentId, $weeksPassed, $type, $now)
 {
     // 手動で設定
     $lifespanCount = "2"; //適当に設定してる
@@ -250,7 +264,8 @@ class BotController
             if($type === "Introduction"){
               $generatedText = 'こんにちは！データサイエンス入門の質問を受付中です！質問を具体的に書いてもらえる？😊';
             } else {
-              $generatedText = 'こんにちは！データサイエンスへの誘いの質問を受付中です！質問を具体的に書いてもらえる？😊';
+              // $generatedText = 'こんにちは！データサイエンスへの誘いの質問を受付中です！質問を具体的に書いてもらえる？😊';
+              $generatedText = $weeksPassed;
             }
             $lineController->insertConversation($userId, "bot", "text", $generatedText, $contextName, 2);
             $replyMessages->add(new TextMessageBuilder($generatedText));
@@ -276,7 +291,7 @@ class BotController
             $lineController = new LineController();
             $userQuestion = $lineController->getUserInputQuestion($userId);
             $questionsController = new QuestionsController();
-            $questionResponse = $questionsController->insertQuestionData($userId, $number, $userQuestion);
+            $questionResponse = $questionsController->insertQuestionData($userId, $weeksPassed, $userQuestion);
 
             $payload = array('message' => $userQuestion, 'index' => $questionResponse["questionIndex"]);
             echo sendEmailToInstructorsWhithLogs("newQuestion", $userQuestion, $questionResponse["questionIndex"], $userId);
@@ -296,7 +311,7 @@ class BotController
             if($type === "Introduction"){
               $generatedText = makeReplyIntroduction($event);
             } else {
-              $generatedText = makeReplyInvitation_typeA($event, $number);
+              $generatedText = makeReplyInvitation_typeA($event, $weeksPassed);
             }
             $lineController->insertConversation($userId, "bot", "text", $generatedText, $contextName, 2);
 
