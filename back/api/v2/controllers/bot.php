@@ -267,8 +267,7 @@ class BotController
             if($type === "Introduction"){
               $generatedText = 'こんにちは！データサイエンス入門の質問を受付中です！質問を具体的に書いてもらえる？😊';
             } else {
-              // $generatedText = 'こんにちは！データサイエンスへの誘いの質問を受付中です！質問を具体的に書いてもらえる？😊';
-              $generatedText = $weeksPassed;
+              $generatedText = 'こんにちは！データサイエンスへの誘いの質問を受付中です！質問を具体的に書いてもらえる？😊';
             }
             $lineController->insertConversation($userId, "bot", "text", $generatedText, $contextName, 2);
             $replyMessages->add(new TextMessageBuilder($generatedText));
