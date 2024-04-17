@@ -102,24 +102,27 @@ class BotController
   private function webhook($requestBody, $signature)
   {
     $response = null;
-
+    
+    // 入力内容変更欄
+    ###############################
     // 授業が第何回であるかの変数
-    // 初期日付を設定
-    $startDate = new DateTime('2024-04-05');
 
+    // 初期日付を設定
+    $startDate = new DateTime('2024-04-18');
     // 現在の日付を取得
     $now = new DateTime();
-    
     // 2つの日付の差を計算
     $interval = $startDate->diff($now);
     
     // 差を週数に変換．floor関数で小数点以下を切り捨て
     // 1週間経過していても1週間とカウントされるように+1
-    // 週がずれる場合は+1を削除して調整
+    // 週がずれる場合は+1がない方を採用して調整
     $weeksPassed = floor($interval->days / 7) + 1;
+    // $weeksPassed = floor($interval->days / 7);
 
-    // 授業タイプ（Introduction or Invitation）
+    // 授業タイプ（Introduction or Invitation）セメスター毎に変更
     $type = "Invitation";
+    ################################
 
     try {
       // LINEBotが受信したイベントオブジェクトを受け取る
