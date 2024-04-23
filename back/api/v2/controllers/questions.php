@@ -1,5 +1,5 @@
 <?php
-ini_set('display_errors',1);
+// ini_set('display_errors',1);
 
 class QuestionsController
 {
@@ -437,7 +437,7 @@ class QuestionsController
    * @param string $question_text 質問文
    * @return array 結果
    */
-  private function insertQuestionData($userId, $lectureNumber, $questionText) {
+  public function insertQuestionData($userId, $lectureNumber, $questionText) {
     $db = new DB();
     $pdo = $db -> pdo();
 
@@ -495,8 +495,8 @@ class QuestionsController
       $this->code = 201;
       //header("Location: ".$this->url.$lastIndexQA);
 
-      include(dirname( __FILE__)."/../utils/sendEmail.php");
-      sendEmailToInstructors("newQuestion", $questionText, $lastIndexQA);
+      // include(dirname( __FILE__)."/../utils/sendEmail.php");
+      // sendEmailToInstructors("newQuestion", $questionText, $lastIndexQA);
 
       return [
         "questionIndex" => $lastIndexQA,
@@ -578,7 +578,7 @@ class QuestionsController
    * @param string $intentName Dialogflowに登録されているインテント名(Format: projects/<Project ID>/agent/intents/<Intent ID>)
    * @return array DB更新結果 || エラーメッセージ
    */
-  private function updateAnswer($questionIndex, $broadcast, $questionText, $userUid, $answerText, $intentName) {
+  public function updateAnswer($questionIndex, $broadcast, $questionText, $userUid, $answerText, $intentName) {
     $db = new DB();
     try{
       // mysqlの実行文

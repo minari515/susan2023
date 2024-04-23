@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors',1);
 
-require_once(dirname(__FILE__)."/../../../vendor/autoload.php");
+require_once(dirname(__FILE__)."/../vendor/autoload.php");
 use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__."/../../../"); //.envを読み込む
 $dotenv->load();
@@ -178,7 +178,7 @@ class DiscussionsController
    * @param string $messageType chat/answer
    * @param string $message
    */
-  public function setDiscussionMessage($questionIndex, $userId, $userType, $isUsersQuestion, $messageType, $message) {
+  private function setDiscussionMessage($questionIndex, $userId, $userType, $isUsersQuestion, $messageType, $message) {
     $db = new DB();
     $pdo = $db -> pdo();
 
@@ -318,31 +318,3 @@ class DiscussionsController
     return !(is_null($value) || $value === "");
   }
 }
-
-  /**
-   * 指定のuserUidを基準にBotTalkLigsテーブルからデータを取得する関数
-   * @param string $userUid ユーザーUID
-   * @return array 取得したデータの配列
-   */
-  function getBotTalkLigsData($userUid) {
-    $db = new DB(); // DBクラスのインスタンスを作成（必要に応じてDBクラスを定義してください）
-
-    try {
-        // MySQLの実行文
-        $stmt = $db->pdo()->prepare(
-            "SELECT * FROM `BotTalkLogs` WHERE `userUid` = :userUid"
-        );
-        // データの紐付け
-        $stmt->bindValue(':userUid', $userUid, PDO::PARAM_STR);
-        // 実行
-        $res = $stmt->execute();
-
-        if ($res) {
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } else {
-            return [];
-        }
-    } catch (PDOException $error) {
-        return [];
-    }
-  }
