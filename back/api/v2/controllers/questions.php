@@ -29,7 +29,7 @@ class QuestionsController
       // 指定のインデックスから最新30件の質疑応答情報を取得
       case "list":
         $startIndex = $_GET['startIndex'] == 0 ? 99999 : $_GET['startIndex'];
-        $questionData = $this->questionsAppService->getQuestionsData($startIndex);
+        $questionData = $this->questionsAppService->getQuestionsFrom($startIndex);
         $this->code = $questionData["error"] ? 500 : 200;
         return $questionData;
       
@@ -41,7 +41,7 @@ class QuestionsController
       
       // 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
       case "latest":
-        $questionData = $this->questionsAppService->getLatestQuestionsData();
+        $questionData = $this->questionsAppService->getLatestQuestions();
         $this->code = $questionData["error"] ? 500 : 200;
         return $questionData;
 

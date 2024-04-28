@@ -1,49 +1,22 @@
 <?php
 
+require_once(dirname(__FILE__).'../../domain/services/QuestionService.php');
+
 class QuestionsAppService {
+
+  private $questionService;
+  
+  public function __construct() {
+    $this->questionService = new QuestionService();
+  }
 
   /**
     * 指定のインデックスを起点に最新30件の質疑応答情報を取得する
-    * @param int $startIndex 質疑応答情報のインデックス
-    * @return array 質問データ
+    * @param int $index 質疑応答情報のインデックス
+    * @return QuestionEntity[] 質問データ
     */
-  public function getQuestionsData($startIndex) {
-    if($startIndex == 0) $startIndex = 99999;
-    $db = new DB();
-
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        WHERE `index` < :startIndex
-        ORDER BY `Questions`.`index` DESC
-        LIMIT 30"
-      );
-      //データの紐付け
-      $stmt->bindValue(':startIndex', $startIndex, PDO::PARAM_INT);
-      // 実行
-      $res = $stmt->execute();
-
-      if($res){
-        //$questions = $stmt->fetchAll(PDO::FETCH_ASSOC|PDO::FETCH_UNIQUE);
-        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach($questions as $key => $question){
-          $questions[$key]["broadcast"] = (bool)$question["broadcast"];
-        }
-        return $questions;
-      }else{
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-
-    } catch(PDOException $error){
-      return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
-      ]];
-    }
+  public function getQuestionsFrom($index) {
+    return (array)$this->questionService->getQuestions(30, $index);
   }
 
   /**
@@ -92,34 +65,7 @@ class QuestionsAppService {
    * 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
    * @return array 質問データ
    */
-  public function getLatestQuestionsData(){
-    $db = new DB();
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        ORDER BY `Questions`.`index` DESC
-        LIMIT 5"
-      );
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        //$questions = $stmt->fetchAll(PDO::FETCH_ASSOC|PDO::FETCH_UNIQUE);
-        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $questions;
-      }else{
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-
-    } catch(PDOException $error){
-      return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
-      ]];
-    }
+  public function getLatestQuestions(){
+    return (array)$this->questionService->getQuestions(5);
   }
 }
