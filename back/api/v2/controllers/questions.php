@@ -1,5 +1,6 @@
 <?php
 // ini_set('display_errors',1);
+
 require(dirname( __FILE__)."../../../../app_service/QuestionsAppService.php");
 
 class QuestionsController
@@ -184,65 +185,25 @@ class QuestionsController
    * @return array DB追加の成功/失敗
    */
   private function insertViewingLog($lineId, $questionIndex) {
-    $db = new DB();
-    $pdo = $db -> pdo();
 
-    try{
-      // mysqlの実行文の記述
-      // 指定されたインデックスの質問が存在しない場合はMySQL#1048エラー
-      $stmt = $pdo -> prepare(
-        "INSERT INTO PageViewHistories (userUid, questionIndex, isQuestionerViewing)
-        VALUES (
-          :userUid,
-          (SELECT `index` FROM `Questions` WHERE `index` = :questionIndex), 
-          (SELECT COUNT(*) FROM `Questions` WHERE `index`=:qIndex AND `questionerId` = :questionerId LIMIT 1)
-        )"
-      );
-      //データの紐付け
-      $stmt->bindValue(':userUid', $lineId, PDO::PARAM_STR);
-      $stmt->bindValue(':questionIndex', $questionIndex, PDO::PARAM_INT);
-      $stmt->bindValue(':qIndex', $questionIndex, PDO::PARAM_INT);
-      $stmt->bindValue(':questionerId', $lineId, PDO::PARAM_STR);
-      
-      // 実行
-      $res = $stmt->execute();
-      $lastIndex = $pdo->lastInsertId();
-      if($res){
-        $this->code = 201;
-        //header("Location: ".$this->url.$lastIndex);
-        return [
-          "result" => "success",
-          "status" => 201
-        ];
-      }else{
-        throw new ErrorException(json_encode([
-          "error" => [
-            "type" => "pdo_not_response"
-          ],
-          "status" => 500
-        ]));
-      }
-
-    } catch(PDOException $error){
-      throw new PDOException(json_encode([
-          "error" => [
-            "type" => "pdo_exception",
-            "message" => $error->getMessage()
-          ],
-          "status" => 500
-        ]));
-    } catch(Exception $error){
-      if(json_decode($error->getMessage())->error->type == "pdo_not_response"){
-        throw $error;
-      }else{
-        throw new ErrorException(json_encode([
-            "error" => [
-              "type" => "unknown_exception",
-              "message" => $error->getMessage()
-            ],
-            "status" => 500
-          ]));
-      }
+    require_once(dirname(__FILE__)."../../../../repository/LogRepository.php");
+    $logRepository = new LogRepository();
+    
+    try {
+      $savedLogIndex = $logRepository->savePageViewHistory($lineId, $questionIndex);
+    
+      $this->code = 201;
+      return [
+        "result" => "success",
+        "savedLogIndex" => $savedLogIndex,
+      ];
+    
+    }catch(Exception $error){
+      $this->code = 500;
+      return ["error" => [
+        "type" => get_class($error),
+        "message" => json_decode($error->getMessage(), true)
+      ]];
     }
   }
 
