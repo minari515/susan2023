@@ -1,10 +1,14 @@
 <?php
 
 require_once(dirname(__FILE__).'../../models/Question.php');
+require_once(dirname(__FILE__).'../../../repository/QuestionsRepository.php');
 
 class QuestionService {
 
+  private $questionRepository;
+
   public function __construct() {
+    $this->questionRepository = new QuestionRepository();
   }
 
   /**
@@ -15,45 +19,21 @@ class QuestionService {
    */
   public function getQuestions($range = 30, $startIndex = 99999) {
     $questions = [];
-
-    $db = new DB();
-
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        WHERE `index` < :startIndex
-        ORDER BY `Questions`.`index` DESC
-        LIMIT :range"
+    
+    $data = $this->questionRepository->findQuestions($range, $startIndex);
+    
+    foreach($data as $key => $question){
+      $questions[] = new QuestionEntity(
+        $question["index"],
+        $question["timestamp"],
+        $question["lectureNumber"],
+        $question["questionText"],
+        $question["answerText"],
+        $question["broadcast"],
+        $question["intentName"]
       );
-      //データの紐付け
-      $stmt->bindValue(':startIndex', $startIndex, PDO::PARAM_INT);
-      $stmt->bindValue(':range', $range, PDO::PARAM_INT);
-      // 実行
-      $res = $stmt->execute();
-
-      if($res){
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach($result as $key => $question){
-          $questions[] = new QuestionEntity(
-            $question["index"],
-            $question["timestamp"],
-            $question["lectureNumber"],
-            $question["questionText"],
-            $question["answerText"],
-            $question["broadcast"],
-            $question["intentName"]
-          );
-        }
-        return $questions;
-
-      }else{
-        throw new Exception("PDOの実行に失敗しました");
-      }
-
-    } catch(PDOException $error){
-      throw $error;
     }
+
+    return $questions;
   }
 }
