@@ -28,7 +28,8 @@ class QuestionsController
     switch($args[0]){
       // 指定のインデックスから最新30件の質疑応答情報を取得
       case "list":
-        $questionData = $this->questionsAppService->getQuestionsData($_GET['startIndex']);
+        $startIndex = $_GET['startIndex'] == 0 ? 99999 : $_GET['startIndex'];
+        $questionData = $this->questionsAppService->getQuestionsData($startIndex);
         $this->code = $questionData["error"] ? 500 : 200;
         return $questionData;
       
