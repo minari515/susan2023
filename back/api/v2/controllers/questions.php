@@ -95,10 +95,10 @@ class QuestionsController
           ]];
         }
         // ユーザーの存在確認
-        include("users.php");
-        $usersController = new UsersController();
+        include("../../../domain/services/UserService.php");
+        $userService = new UserService();
         try{
-          $userId = $usersController->verifyLine($post["userIdToken"])["sub"];
+          $userId = $userService->verifyLine($post["userIdToken"])["sub"];
         }catch(Exception $error){
           $this->code = $error->getCode();
           return ["error" => json_decode($error->getMessage(),true)];
