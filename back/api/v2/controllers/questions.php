@@ -1,5 +1,6 @@
 <?php
 // ini_set('display_errors',1);
+require(dirname( __FILE__)."../../../../app_service/QuestionsAppService.php");
 
 class QuestionsController
 {
@@ -7,10 +8,14 @@ class QuestionsController
   public $url;
   public $request_body;
 
+  private $questionsAppService;
+
   function __construct()
   {
     $this->url = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://').$_SERVER['HTTP_HOST'].mb_substr($_SERVER['SCRIPT_NAME'],0,-9).basename(__FILE__, ".php")."/";
     $this->request_body = json_decode(mb_convert_encoding(file_get_contents('php://input'),"UTF8","ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN"),true);
+
+    $this->questionsAppService = new QuestionsAppService();
   }
 
   /**************************************************************************** */
@@ -23,18 +28,21 @@ class QuestionsController
     switch($args[0]){
       // 指定のインデックスから最新30件の質疑応答情報を取得
       case "list":
-        return $this->getQuestionsData($_GET['startIndex']);
-        break;
+        $questionData = $this->questionsAppService->getQuestionsData($_GET['startIndex']);
+        $this->code = $questionData["error"] ? 500 : 200;
+        return $questionData;
       
       // 指定のインデックスの質疑応答情報を1件取得
       case is_numeric($args[0]):
-        return $this->getSelectedQuestionData($args[0]);
-        break;
+        $questionData = $this->questionsAppService->getSelectedQuestionData($args[0]);
+        $this->code = $questionData["error"] ? 500 : 200;
+        return $questionData;
       
       // 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
       case "latest":
-        return $this->getLatestQuestionsData();
-        break;
+        $questionData = $this->questionsAppService->getLatestQuestionsData();
+        $this->code = $questionData["error"] ? 500 : 200;
+        return $questionData;
 
       // 無効なアクセス
       default:
@@ -42,135 +50,6 @@ class QuestionsController
         return ["error" => [
           "type" => "invalid_access"
         ]];
-    }
-  }
-
-  /**
-   * 指定のインデックスを起点に最新30件の質疑応答情報を取得する
-   * TODO: LINEbotから呼び出せるようにpublicだが，privateにしておきたい
-   * @param int $startIndex 質疑応答情報のインデックス
-   * @return array 質問データ
-   */
-  public function getQuestionsData($startIndex) {
-    if($startIndex == 0) $startIndex = 99999;
-    $db = new DB();
-
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        WHERE `index` < :startIndex
-        ORDER BY `Questions`.`index` DESC
-        LIMIT 30"
-      );
-      //データの紐付け
-      $stmt->bindValue(':startIndex', $startIndex, PDO::PARAM_INT);
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        //$questions = $stmt->fetchAll(PDO::FETCH_ASSOC|PDO::FETCH_UNIQUE);
-        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach($questions as $key => $question){
-          $questions[$key]["broadcast"] = (bool)$question["broadcast"];
-        }
-        return $questions;
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-
-    } catch(PDOException $error){
-      $this -> code = 500;
-      return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
-      ]];
-    }
-  }
-
-  /**
-   * 指定のインデックスの質疑応答情報を取得する
-   * @param int $index 質疑応答情報のインデックス
-   */
-  private function getSelectedQuestionData($index) {
-    $db = new DB();
-
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        WHERE `index` = :QuestionIndex"
-      );
-      //データの紐付け
-      $stmt->bindValue(':QuestionIndex', $index, PDO::PARAM_INT);
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        $question = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if(!empty($question)){
-          $question[0]["broadcast"] = (bool)$question[0]["broadcast"];
-          return $question[0];
-        }else{ //指定したインデックスの質問が存在しない場合
-          $this->code = 404;
-          return ["error" => [
-            "type" => "not_in_sample"
-          ]];
-        }
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-    } catch(PDOException $error){
-      $this -> code = 500;
-      return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
-      ]];
-    }
-  }
-
-  /**
-   * 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
-   * @return array 質問データ
-   */
-  private function getLatestQuestionsData(){
-    $db = new DB();
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        ORDER BY `Questions`.`index` DESC
-        LIMIT 5"
-      );
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        //$questions = $stmt->fetchAll(PDO::FETCH_ASSOC|PDO::FETCH_UNIQUE);
-        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $questions;
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-
-    } catch(PDOException $error){
-      $this -> code = 500;
-      return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
-      ]];
     }
   }
 
