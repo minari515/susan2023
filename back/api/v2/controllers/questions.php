@@ -25,32 +25,41 @@ class QuestionsController
    * @return array レスポンス
    */
   public function get($args) {
-    switch($args[0]){
-      // 指定のインデックスから最新30件の質疑応答情報を取得
-      case "list":
-        $startIndex = $_GET['startIndex'] == 0 ? 99999 : $_GET['startIndex'];
-        $questionData = $this->questionsAppService->getQuestionsFrom($startIndex);
-        $this->code = $questionData["error"] ? 500 : 200;
-        return $questionData;
-      
-      // 指定のインデックスの質疑応答情報を1件取得
-      case is_numeric($args[0]):
-        $questionData = $this->questionsAppService->getSelectedQuestionData($args[0]);
-        $this->code = $questionData["error"] ? 500 : 200;
-        return $questionData;
-      
-      // 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
-      case "latest":
-        $questionData = $this->questionsAppService->getLatestQuestions();
-        $this->code = $questionData["error"] ? 500 : 200;
-        return $questionData;
+    try{
+      switch($args[0]){
+        // 指定のインデックスから最新30件の質疑応答情報を取得
+        case "list":
+          $startIndex = $_GET['startIndex'] == 0 ? 99999 : $_GET['startIndex'];
+          return $this->questionsAppService->getQuestionsFrom($startIndex);
+        
+        // 指定のインデックスの質疑応答情報を1件取得
+        case is_numeric($args[0]):
+          return $this->questionsAppService->getSelectedQuestionData($args[0]);
+        
+        // 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
+        case "latest":
+          return $this->questionsAppService->getLatestQuestions();
 
-      // 無効なアクセス
-      default:
-        $this -> code = 400;
-        return ["error" => [
-          "type" => "invalid_access"
-        ]];
+        // 無効なアクセス
+        default:
+          $this -> code = 400;
+          return ["error" => [
+            "type" => "invalid_access"
+          ]];
+      }
+    }catch(PDOException $error){
+      $this->code = 500;
+      return ["error" => [
+        "type" => "pdo_exception",
+        "message" => json_decode($error,true)
+      ]];
+      
+    }catch(Exception $error){
+      $this->code = 500;
+      return ["error" => [
+        "type" => "unknown_exception",
+        "message" => json_decode($error,true)
+      ]];
     }
   }
 
