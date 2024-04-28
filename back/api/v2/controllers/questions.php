@@ -151,24 +151,9 @@ class QuestionsController
           ]];
         }
         
-        $resInsert = $this->insertQuestionData($post["userId"], $post["lectureNumber"], $post["questionText"]);
-        if(!array_key_exists("questionIndex", $resInsert)){
-          $this->code = 500;
-          return ["error" => $resInsert];
-        }
-        include("users.php");
-        $usersController = new UsersController();
-        $resAssign = $usersController->assignStudentAnswerer($post["userId"], $resInsert["questionIndex"]);
-        if(!array_key_exists("assignedStudents", $resAssign)){
-          $this->code = 500;
-          return ["error" => $resAssign];
-        }
-
-        return [
-          "questionIndex" => $resInsert["questionIndex"], 
-          "assignedStudents" => $resAssign["assignedStudents"]
-        ];
-        break;
+        $response = $this->questionsAppService->postQuestion($post["userId"], $post["lectureNumber"], $post["questionText"]);
+        $this->code = 201;
+        return $response;
 
       // 無効なアクセス
       default:

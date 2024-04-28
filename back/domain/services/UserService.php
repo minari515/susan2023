@@ -1,11 +1,20 @@
 <?php
-
+require_once(dirname(__FILE__)."/../../../repository/UsersRepository.php");
+require_once(dirname(__FILE__)."/../../../repository/AssignmentsRepository.php");
 require_once(dirname(__FILE__)."/../../vendor/autoload.php");
 use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__."/../../"); //.envを読み込む
 $dotenv->load();
 
 class UserService {
+
+  private $usersRepository;
+  private $assignmentsRepository;
+
+  public function __construct() {
+    $this->usersRepository = new UsersRepository();
+    $this->assignmentsRepository = new AssignmentsRepository();
+  }
 
   /**
    * LINEのIDトークン検証
@@ -56,5 +65,23 @@ class UserService {
       ]));
     }
     return $result;
+  }
+
+  /**
+   * 質問者を除いて、回答可能なユーザを取得する
+   * @param int $questionerId 質問者のID
+   * @return array 回答可能なユーザのID
+   */
+  public function getAssignableUsers($questionerId) {
+    return $this->usersRepository->findAnswerableUsersForRandomExclude($questionerId);
+  }
+
+  /**
+   * 回答協力者を登録する
+   * @param array $assignerIds 協力者のID
+   * @param int $questionIndex 質問のインデックス
+   */
+  public function assignAnswerers($assignerIds, $questionIndex) {
+    return $this->assignmentsRepository->saveAssigners($assignerIds, $questionIndex);
   }
 }

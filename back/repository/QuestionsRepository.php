@@ -75,6 +75,39 @@ class QuestionRepository {
   }
 
   /**
+   * 質問を新規登録する
+   * @param string $userId ユーザID
+   * @param int $lectureNumber 講義番号
+   * @param string $questionText 質問内容
+   * @return int 質問のインデックス
+   */
+  public function saveNewQuestion($userId, $lectureNumber, $questionText) {
+    try{
+      // mysqlの実行文の記述
+      $stmt = $this->db -> pdo() -> prepare(
+        "INSERT INTO Questions (questionerId, lectureNumber, questionText)
+        VALUES (:questionerId, :lectureNumber, :questionText)"
+      );
+      //データの紐付け
+      $stmt->bindValue(':lectureNumber', $lectureNumber, PDO::PARAM_INT);
+      $stmt->bindValue(':questionText', $questionText, PDO::PARAM_STR);
+      $stmt->bindValue(':questionerId', $userId, PDO::PARAM_STR);
+      // 実行
+      $res = $stmt->execute();
+  
+      if($res){
+        return $this->db->pdo()->lastInsertId();
+      
+      }else{
+        throw new Exception("PDOの実行に失敗しました");
+      }
+    
+    } catch(PDOException $error){
+      throw $error;
+    }
+  }
+
+  /**
    * 指定インデックスの質問が特定のユーザによるものかを確認する
    * @param int $index 質問のインデックス
    * @param string $userId ユーザID

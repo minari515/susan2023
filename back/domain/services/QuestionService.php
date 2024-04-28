@@ -65,6 +65,26 @@ class QuestionService {
   }
 
   /**
+   * 新規質問投稿
+   * @param string $userId ユーザID
+   * @param int $lectureNumber 講義番号
+   * @param string $questionText 質問内容
+   */
+  public function addNewQuestion($userId, $lectureNumber, $questionText) {
+    $savedQuestionIndex = $this->questionRepository->saveNewQuestion($userId, $lectureNumber, $questionText);
+    $savedQuestion = new QuestionEntity(
+      $savedQuestionIndex,
+      date("Y-m-d H:i:s"),
+      $lectureNumber,
+      $questionText,
+      null,
+      0,
+      null
+    );
+    return $savedQuestion;
+  }
+
+  /**
    * 指定の質問がユーザ自身が投稿した質問であるか確認
    * @param int $questionIndex 質問のインデックス
    * @param string $userId ユーザID

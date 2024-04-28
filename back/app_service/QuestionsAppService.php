@@ -1,16 +1,19 @@
 <?php
 
 require_once(dirname(__FILE__).'../../domain/services/QuestionService.php');
+require_once(dirname(__FILE__).'../../domain/services/UserService.php');
 require_once(dirname(__FILE__)."../../../../repository/LogRepository.php");
 require_once(dirname(__FILE__).'../../domain/exceptions/NotFoundException.php');
 
 class QuestionsAppService {
 
   private $questionService;
+  private $userService;
   private $logRepository;
   
   public function __construct() {
     $this->questionService = new QuestionService();
+    $this->userService = new UserService();
     $this->logRepository = new LogRepository();
   }
 
@@ -42,6 +45,28 @@ class QuestionsAppService {
    */
   public function getLatestQuestions(){
     return (array)$this->questionService->getQuestions(5);
+  }
+
+  /**
+   * 質問投稿
+   * @param string $userId ユーザID
+   * @param int $lectureNumber 講義番号
+   * @param string $questionText 質問内容
+   * @return array 質問インデックスと回答協力者
+   */
+  public function postQuestion($userId, $lectureNumber, $questionText) {
+
+    // 質問を登録
+    $question = $this->questionService->addNewQuestion($userId, $lectureNumber, $questionText);
+
+    // 回答協力者を割り振る
+    $assignableUsers = $this->userService->getAssignableUsers($userId);
+    $assignedIndex = $this->userService->assignAnswerers($assignableUsers, $question->index);
+
+    return [
+      "questionIndex" => $question->index, 
+      "assignedStudents" => $assignableUsers
+    ];
   }
 
   /**
