@@ -115,12 +115,12 @@ class QuestionsController
             "type" => "invalid_param"
           ]];
         }
+        $viewedQuestionIndex = (int) $pathParams[1];
         try{
-          $recordStatus = $this->insertViewingLog($userId, (int) $pathParams[1])["status"];
-          $res["isYourQuestion"] = $this->checkIsYourQuestion((int) $pathParams[1], $userId)["isQuestioner"];
-          $res["isAssigner"] = $res["isYourQuestion"] ? false : $this->checkIsAssigner((int) $pathParams[1], $userId)["isAssigner"];
-          $this->code = $recordStatus;
+          $res = $this->questionsAppService->recordQuestionView($viewedQuestionIndex, $userId);
+          $this->code = 201;
           return $res;
+
         }catch(Exception $error){
           $this->code = json_decode($error->getMessage())->status;
           return ["error" => json_decode($error->getMessage(),true)];
@@ -135,7 +135,8 @@ class QuestionsController
             "type" => "invalid_param"
           ]];
         }else{
-          return $this->checkIsYourQuestion((int) $pathParams[1], $userId);
+          $questionIndex = (int) $pathParams[1];
+          return $this->questionsAppService->checkIsYourQuestion($questionIndex, $userId);
         }
         break;
 
@@ -176,63 +177,6 @@ class QuestionsController
           "type" => "invalid_access"
         ]];
     }
-  }
-
-  /**
-   * 質疑LIFFページの閲覧ログの追加
-   * @param string $lineId ユーザのLINE固有id
-   * @param int $questionIndex 閲覧した質疑応答情報のインデックス
-   * @return array DB追加の成功/失敗
-   */
-  private function insertViewingLog($lineId, $questionIndex) {
-
-    require_once(dirname(__FILE__)."../../../../repository/LogRepository.php");
-    $logRepository = new LogRepository();
-    
-    try {
-      $savedLogIndex = $logRepository->savePageViewHistory($lineId, $questionIndex);
-    
-      $this->code = 201;
-      return [
-        "result" => "success",
-        "savedLogIndex" => $savedLogIndex,
-      ];
-    
-    }catch(Exception $error){
-      $this->code = 500;
-      return ["error" => [
-        "type" => get_class($error),
-        "message" => json_decode($error->getMessage(), true)
-      ]];
-    }
-  }
-
-  /**
-   * 質問がアクセスしたユーザが投稿したものかチェックする
-   * @param int $index 質問のインデックス
-   * @param string $lineId ユーザID
-   * @return array
-   */
-  private function checkIsYourQuestion($index, $lineId){
-    require_once(dirname(__FILE__)."../../../../repository/QuestionsRepository.php");
-    $questionRepository = new QuestionRepository();
-
-    $isQuestionByUser = $questionRepository->isQuestionByUser($index, $lineId);
-    return ["isQuestioner" => $isQuestionByUser];
-  }
-
-  /**
-   * ユーザが質問の回答者に割り振られているか確認する
-   * @param int $index 質問のインデックス
-   * @param string $lineId ユーザID
-   * @return array
-   */
-  private function checkIsAssigner($index, $lineId){
-    require_once(dirname(__FILE__)."../../../../repository/AssignmentsRepository.php");
-    $assignmentsRepository = new AssignmentsRepository();
-
-    $isAssigner = $assignmentsRepository->isAssigned($index, $lineId);
-    return ["isAssigner" => $isAssigner];
   }
 
   /**

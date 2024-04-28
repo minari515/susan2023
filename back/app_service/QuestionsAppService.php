@@ -1,14 +1,17 @@
 <?php
 
 require_once(dirname(__FILE__).'../../domain/services/QuestionService.php');
+require_once(dirname(__FILE__)."../../../../repository/LogRepository.php");
 require_once(dirname(__FILE__).'../../domain/exceptions/NotFoundException.php');
 
 class QuestionsAppService {
 
   private $questionService;
+  private $logRepository;
   
   public function __construct() {
     $this->questionService = new QuestionService();
+    $this->logRepository = new LogRepository();
   }
 
   /**
@@ -39,5 +42,39 @@ class QuestionsAppService {
    */
   public function getLatestQuestions(){
     return (array)$this->questionService->getQuestions(5);
+  }
+
+  /**
+   * 質問閲覧時の記録とユーザと質問の関連付け
+   * @param int $questionIndex 質問のインデックス
+   * @param string $userId ユーザID
+   */
+  public function recordQuestionView($questionIndex, $userId) {
+    // ページビュー履歴を保存
+    $savedLogIndex = $this->logRepository->savePageViewHistory($userId, $questionIndex);
+
+    // 閲覧した質問がユーザ自身が投稿した質問であるか確認
+    $isQuestionByUser = $this->questionService->isQuestionByUser($questionIndex, $userId);
+
+    // 閲覧した質問がユーザに回答協力を求めている質問であるか確認
+    $isAssignedQuestion = $isQuestionByUser 
+      ? false // 質問者自身に回答協力を求めていない
+      : $this->questionService->isAssignedQuestion($questionIndex, $userId);
+
+    return [
+      "logIndex" => $savedLogIndex,
+      "isYourQuestion" => $isQuestionByUser,
+      "isAssigner" => $isAssignedQuestion
+    ];
+  }
+
+  /**
+   * 質問者か確認
+   * @param int $questionIndex 質問のインデックス
+   * @param string $userId ユーザID
+   */
+  public function checkIsYourQuestion($questionIndex, $userId) {
+    $isQuestionByUser = $this->questionService->isQuestionByUser($questionIndex, $userId);
+    return ["isQuestioner" => $isQuestionByUser];
   }
 }

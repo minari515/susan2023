@@ -2,13 +2,16 @@
 
 require_once(dirname(__FILE__).'../../models/Question.php');
 require_once(dirname(__FILE__).'../../../repository/QuestionsRepository.php');
+require_once(dirname(__FILE__).'../../../repository/AssignmentsRepository.php');
 
 class QuestionService {
 
   private $questionRepository;
+  private $assignmentsRepository;
 
   public function __construct() {
     $this->questionRepository = new QuestionRepository();
+    $this->assignmentsRepository = new AssignmentsRepository();
   }
 
   /**
@@ -59,5 +62,23 @@ class QuestionService {
     );
 
     return $question;
+  }
+
+  /**
+   * 指定の質問がユーザ自身が投稿した質問であるか確認
+   * @param int $questionIndex 質問のインデックス
+   * @param string $userId ユーザID
+   */
+  public function isQuestionByUser($questionIndex, $userId) {
+    return $this->questionRepository->isQuestionByUser($questionIndex, $userId);
+  }
+
+  /**
+   * 指定の質問がユーザに回答協力を求めている質問であるか確認
+   * @param int $questionIndex 質問のインデックス
+   * @param string $userId ユーザID
+   */
+  public function isAssignedQuestion($questionIndex, $userId) {
+    return $this->assignmentsRepository->isAssigned($questionIndex, $userId);
   }
 }
