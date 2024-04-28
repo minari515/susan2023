@@ -43,4 +43,34 @@ class QuestionRepository {
       throw $error;
     }
   }
+
+  /**
+   * 指定のインデックスの質疑応答情報を取得する
+   * @param int $index 質疑応答情報のインデックス
+   * @return Object 質問データ
+   */
+  function findQuestion($index) {
+    try{
+      // mysqlの実行文
+      $stmt = $this->db -> pdo() -> prepare(
+        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
+        FROM `Questions`
+        WHERE `index` = :QuestionIndex"
+      );
+      //データの紐付け
+      $stmt->bindValue(':QuestionIndex', $index, PDO::PARAM_INT);
+      // 実行
+      $res = $stmt->execute();
+  
+      if($res){
+        return $stmt->fetchAll(PDO::FETCH_ASSOC)[0];
+        
+      }else{
+        throw new Exception("PDOの実行に失敗しました");
+      }
+    
+    } catch(PDOException $error){
+      throw $error;
+    }
+  }
 }
