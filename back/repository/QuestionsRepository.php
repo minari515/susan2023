@@ -73,4 +73,35 @@ class QuestionRepository {
       throw $error;
     }
   }
+
+  /**
+   * 指定インデックスの質問が特定のユーザによるものかを確認する
+   * @param int $index 質問のインデックス
+   * @param string $userId ユーザID
+   * @return bool
+   */
+  function isQuestionByUser($index, $userId) {
+    try{
+      // mysqlの実行文(テーブルに指定のLINE IDが存在するかのみチェック)
+      $stmt = $this->db -> pdo() -> prepare(
+        "SELECT COUNT(*) 
+        FROM `Questions` 
+        WHERE `index`=:questionIndex AND `questionerId` = :questionerId LIMIT 1"
+      );
+      $stmt->bindValue(':questionIndex', $index, PDO::PARAM_STR);
+      $stmt->bindValue(':questionerId', $userId, PDO::PARAM_STR);
+      // 実行
+      $res = $stmt->execute();
+  
+      if($res){
+        return $stmt->fetchColumn() > 0;
+      
+      }else{
+        throw new Exception("PDOの実行に失敗しました");
+      }
+    
+    } catch(PDOException $error){
+      throw $error;
+    }
+  }
 }

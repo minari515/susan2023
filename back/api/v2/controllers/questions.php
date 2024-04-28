@@ -214,38 +214,11 @@ class QuestionsController
    * @return array
    */
   private function checkIsYourQuestion($index, $lineId){
-    $db = new DB();
-  
-    try{
-      // mysqlの実行文(テーブルに指定のLINE IDが存在するかのみチェック)
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT COUNT(*) 
-        FROM `Questions` 
-        WHERE `index`=:questionIndex AND `questionerId` = :questionerId LIMIT 1"
-      );
-      $stmt->bindValue(':questionIndex', $index, PDO::PARAM_STR);
-      $stmt->bindValue(':questionerId', $lineId, PDO::PARAM_STR);
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        return ["isQuestioner" => $stmt->fetchColumn() > 0];
-      
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-  
-    } catch(PDOException $error){
-      $this -> code = 500;
-      return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
-      ]];
-    }
-    return [];
+    require_once(dirname(__FILE__)."../../../../repository/QuestionsRepository.php");
+    $questionRepository = new QuestionRepository();
+
+    $isQuestionByUser = $questionRepository->isQuestionByUser($index, $lineId);
+    return ["isQuestioner" => $isQuestionByUser];
   }
 
   /**
