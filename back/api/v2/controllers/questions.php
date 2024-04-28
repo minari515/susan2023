@@ -81,86 +81,75 @@ class QuestionsController
    */
   public function post($pathParams) {
     $post = $this->request_body;
-    // TODO: userIdTokenのチェック方法を検討
-    switch($pathParams[0]){
-      case "newQuestion": // チャットボットから新規質問登録するときはuserIdTokenが取得できない
-        break;
-      //case "view_log":
-      //case "isYourQuestion":
-      default:
-        if(!array_key_exists("userIdToken",$post)){
-          $this->code = 400;
-          return ["error" => [
-            "type" => "user token is required"
-          ]];
-        }
-        // ユーザーの存在確認
-        include("../../../domain/services/UserService.php");
-        $userService = new UserService();
-        try{
-          $userId = $userService->verifyLine($post["userIdToken"])["sub"];
-        }catch(Exception $error){
-          $this->code = $error->getCode();
-          return ["error" => json_decode($error->getMessage(),true)];
-        }
-        break;
-    }
     
-    switch($pathParams[0]){
-      // 閲覧ログを記録する
-      case "view_log":
-        if(!is_numeric($pathParams[1])){
-          $this->code = 400;
-          return ["error" => [
-            "type" => "invalid_param"
-          ]];
-        }
-        $viewedQuestionIndex = (int) $pathParams[1];
-        try{
-          $res = $this->questionsAppService->recordQuestionView($viewedQuestionIndex, $userId);
+    try{
+      switch($pathParams[0]){
+        // 閲覧ログを記録する
+        case "view_log":
+          if(!is_numeric($pathParams[1]) || !array_key_exists("userIdToken",$post)){
+            $this->code = 400;
+            return ["error" => [
+              "type" => "invalid_param",
+              "info" => "questionIndex: ".$pathParams[1].", userIdToken: ".is_null($post["userIdToken"]) 
+            ]];
+          }
+          $viewedQuestionIndex = (int) $pathParams[1];
+          $viewerIdToken = $post["userIdToken"];
+          
+          $res = $this->questionsAppService->recordQuestionView($viewedQuestionIndex, $viewerIdToken);
           $this->code = 201;
           return $res;
-
-        }catch(Exception $error){
-          $this->code = json_decode($error->getMessage())->status;
-          return ["error" => json_decode($error->getMessage(),true)];
-        }
-        break;
-      
-      // 質問者とユーザが一致するか
-      case "isYourQuestion":
-        if(!is_numeric($pathParams[1])){
-          $this->code = 400;
-          return ["error" => [
-            "type" => "invalid_param"
-          ]];
-        }else{
-          $questionIndex = (int) $pathParams[1];
-          return $this->questionsAppService->checkIsYourQuestion($questionIndex, $userId);
-        }
-        break;
-
-      case "newQuestion":
-        if(!array_key_exists("userId",$post) || 
-          !array_key_exists("lectureNumber",$post) ||
-          !array_key_exists("questionText",$post)
-        ){
-          $this->code = 400;
-          return ["error" => [
-            "type" => "invalid_param"
-          ]];
-        }
         
-        $response = $this->questionsAppService->postQuestion($post["userId"], $post["lectureNumber"], $post["questionText"]);
-        $this->code = 201;
-        return $response;
+        // 質問者とユーザが一致するか
+        case "isYourQuestion":
+          if(!is_numeric($pathParams[1]) || !array_key_exists("userIdToken",$post)){
+            $this->code = 400;
+            return ["error" => [
+              "type" => "invalid_param",
+              "info" => "questionIndex: ".$pathParams[1].", userIdToken: ".is_null($post["userIdToken"]) 
+            ]];
+          }
 
-      // 無効なアクセス
-      default:
-        $this -> code = 400;
-        return ["error" => [
-          "type" => "invalid_access"
-        ]];
+          $questionIndex = (int) $pathParams[1];
+          $userIdToken = $post["userIdToken"];
+          return $this->questionsAppService->checkIsYourQuestion($questionIndex, $userIdToken);
+
+        case "newQuestion":
+          if(!array_key_exists("userId",$post) || 
+            !array_key_exists("lectureNumber",$post) ||
+            !array_key_exists("questionText",$post)
+          ){
+            $this->code = 400;
+            return ["error" => [
+              "type" => "invalid_param"
+            ]];
+          }
+          
+          $response = $this->questionsAppService->postQuestion($post["userId"], $post["lectureNumber"], $post["questionText"]);
+          $this->code = 201;
+          return $response;
+
+        // 無効なアクセス
+        default:
+          $this -> code = 400;
+          return ["error" => [
+            "type" => "invalid_access"
+          ]];
+      }
+
+    }catch(PDOException $error){
+      $this->code = 500;
+      return ["error" => [
+        "type" => "pdo_exception",
+        "message" => json_decode($error, true)
+      ]];
+
+    }catch(Exception $error){
+      $this->code = 500;
+      return ["error" => [
+        "type" => "unknown_exception",
+        "message" => json_decode($error, true)
+      ]];
     }
   }
 

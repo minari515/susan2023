@@ -72,9 +72,12 @@ class QuestionsAppService {
   /**
    * 質問閲覧時の記録とユーザと質問の関連付け
    * @param int $questionIndex 質問のインデックス
-   * @param string $userId ユーザID
+   * @param string $userIdToken ユーザIDトークン
    */
-  public function recordQuestionView($questionIndex, $userId) {
+  public function recordQuestionView($questionIndex, $userIdToken) {
+    // ユーザIDを取得
+    $userId = $this->userService->verifyLine($userIdToken)["sub"];
+
     // ページビュー履歴を保存
     $savedLogIndex = $this->logRepository->savePageViewHistory($userId, $questionIndex);
 
@@ -96,9 +99,12 @@ class QuestionsAppService {
   /**
    * 質問者か確認
    * @param int $questionIndex 質問のインデックス
-   * @param string $userId ユーザID
+   * @param string $userIdToken ユーザIDトークン
    */
-  public function checkIsYourQuestion($questionIndex, $userId) {
+  public function checkIsYourQuestion($questionIndex, $userIdToken) {
+    // ユーザIDを取得
+    $userId = $this->userService->verifyLine($userIdToken)["sub"];
+    
     $isQuestionByUser = $this->questionService->isQuestionByUser($questionIndex, $userId);
     return ["isQuestioner" => $isQuestionByUser];
   }
