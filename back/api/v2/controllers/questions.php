@@ -34,7 +34,8 @@ class QuestionsController
         
         // 指定のインデックスの質疑応答情報を1件取得
         case is_numeric($args[0]):
-          return $this->questionsAppService->getSelectedQuestionData($args[0]);
+          $selectIndex = (int)$args[0];
+          return $this->questionsAppService->getSelectedQuestion($selectIndex);
         
         // 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
         case "latest":
@@ -47,18 +48,26 @@ class QuestionsController
             "type" => "invalid_access"
           ]];
       }
+    }catch(NotFoundException $error){
+      $this->code = $error->getCode();
+      return ["error" => [
+        "type" => "not_found_exception",
+        "message" => json_decode($error->getMessage(), true),
+        "info" => $error->getSource()
+      ]];
+
     }catch(PDOException $error){
       $this->code = 500;
       return ["error" => [
         "type" => "pdo_exception",
-        "message" => json_decode($error,true)
+        "message" => json_decode($error, true)
       ]];
-      
+
     }catch(Exception $error){
       $this->code = 500;
       return ["error" => [
         "type" => "unknown_exception",
-        "message" => json_decode($error,true)
+        "message" => json_decode($error, true)
       ]];
     }
   }

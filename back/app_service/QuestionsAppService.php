@@ -1,6 +1,7 @@
 <?php
 
 require_once(dirname(__FILE__).'../../domain/services/QuestionService.php');
+require_once(dirname(__FILE__).'../../domain/exceptions/NotFoundException.php');
 
 class QuestionsAppService {
 
@@ -23,41 +24,12 @@ class QuestionsAppService {
    * 指定のインデックスの質疑応答情報を取得する
    * @param int $index 質疑応答情報のインデックス
    */
-  public function getSelectedQuestionData($index) {
-    $db = new DB();
-
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        WHERE `index` = :QuestionIndex"
-      );
-      //データの紐付け
-      $stmt->bindValue(':QuestionIndex', $index, PDO::PARAM_INT);
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        $question = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if(!empty($question)){
-          $question[0]["broadcast"] = (bool)$question[0]["broadcast"];
-          return $question[0];
-        }else{ //指定したインデックスの質問が存在しない場合
-          return ["error" => [
-            "type" => "not_in_sample"
-          ]];
-        }
-      }else{
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-    } catch(PDOException $error){
-      return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
-      ]];
+  public function getSelectedQuestion($index) {
+    $result = $this->questionService->getSelectedQuestionData($index);
+    if(is_null($result)){
+      throw new NotFoundException("指定された質問が見つかりませんでした", ["selectIndex" => $index]);
+    }else{
+      return $result;
     }
   }
 
