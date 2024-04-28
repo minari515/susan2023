@@ -21,20 +21,20 @@ class QuestionsController
   /**************************************************************************** */
   /**
    * GETメソッド
-   * @param array $args
+   * @param array $pathParams `api/v2/questions/{pathParams[0]}/{pathParams[1]}/...`
    * @return array レスポンス
    */
-  public function get($args) {
+  public function get($pathParams) {
     try{
-      switch($args[0]){
+      switch($pathParams[0]){
         // 指定のインデックスから最新30件の質疑応答情報を取得
         case "list":
           $startIndex = $_GET['startIndex'] == 0 ? 99999 : $_GET['startIndex'];
           return $this->questionsAppService->getQuestionsFrom($startIndex);
         
         // 指定のインデックスの質疑応答情報を1件取得
-        case is_numeric($args[0]):
-          $selectIndex = (int)$args[0];
+        case is_numeric($pathParams[0]):
+          $selectIndex = (int)$pathParams[0];
           return $this->questionsAppService->getSelectedQuestion($selectIndex);
         
         // 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
@@ -75,13 +75,13 @@ class QuestionsController
   /**************************************************************************** */
   /**
    * POSTメソッド
-   * @param array $args 追加情報のタイプ
+   * @param array $pathParams `api/v2/questions/{pathParams[0]}/{pathParams[1]}/...`
    * @return array レスポンス
    */
-  public function post($args) {
+  public function post($pathParams) {
     $post = $this->request_body;
     // TODO: userIdTokenのチェック方法を検討
-    switch($args[0]){
+    switch($pathParams[0]){
       case "newQuestion": // チャットボットから新規質問登録するときはuserIdTokenが取得できない
         break;
       //case "view_log":
@@ -105,19 +105,19 @@ class QuestionsController
         break;
     }
     
-    switch($args[0]){
+    switch($pathParams[0]){
       // 閲覧ログを記録する
       case "view_log":
-        if(!is_numeric($args[1])){
+        if(!is_numeric($pathParams[1])){
           $this->code = 400;
           return ["error" => [
             "type" => "invalid_param"
           ]];
         }
         try{
-          $recordStatus = $this->insertViewingLog($userId, (int) $args[1])["status"];
-          $res["isYourQuestion"] = $this->checkIsYourQuestion((int) $args[1], $userId)["isQuestioner"];
-          $res["isAssigner"] = $res["isYourQuestion"] ? false : $this->checkIsAssigner((int) $args[1], $userId)["isAssigner"];
+          $recordStatus = $this->insertViewingLog($userId, (int) $pathParams[1])["status"];
+          $res["isYourQuestion"] = $this->checkIsYourQuestion((int) $pathParams[1], $userId)["isQuestioner"];
+          $res["isAssigner"] = $res["isYourQuestion"] ? false : $this->checkIsAssigner((int) $pathParams[1], $userId)["isAssigner"];
           $this->code = $recordStatus;
           return $res;
         }catch(Exception $error){
@@ -128,13 +128,13 @@ class QuestionsController
       
       // 質問者とユーザが一致するか
       case "isYourQuestion":
-        if(!is_numeric($args[1])){
+        if(!is_numeric($pathParams[1])){
           $this->code = 400;
           return ["error" => [
             "type" => "invalid_param"
           ]];
         }else{
-          return $this->checkIsYourQuestion((int) $args[1], $userId);
+          return $this->checkIsYourQuestion((int) $pathParams[1], $userId);
         }
         break;
 
