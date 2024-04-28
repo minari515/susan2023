@@ -36,4 +36,28 @@ class QuestionService {
 
     return $questions;
   }
+
+  /**
+   * 指定のインデックスの質疑応答情報を取得する
+   * @param int $index 質疑応答情報のインデックス
+   */
+  public function getSelectedQuestionData($index) {
+    $data = $this->questionRepository->findQuestion($index);
+    
+    if(empty($data)){
+      return null;
+    }
+
+    $question = new QuestionEntity(
+      $data["index"],
+      $data["timestamp"],
+      $data["lectureNumber"],
+      $data["questionText"],
+      $data["answerText"],
+      $data["broadcast"],
+      $data["intentName"]
+    );
+
+    return $question;
+  }
 }
