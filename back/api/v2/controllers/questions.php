@@ -248,6 +248,7 @@ class QuestionsController
         "type" => "invalid_url"
       ]];
     }
+    $questionIndex = $args[0];
     $payload = $this->request_body;
 
     if(!array_key_exists("userIdToken",$payload)){
@@ -256,15 +257,7 @@ class QuestionsController
         "type" => "user token is required"
       ]];
     }
-    // ユーザーの存在確認
-    include("users.php");
-    $usersController = new UsersController();
-    try{
-      $userId = $usersController->verifyLine($payload["userIdToken"])["sub"];
-    }catch(Exception $error){
-      $this->code = $error->getCode();
-      return ["error" => json_decode($error->getMessage(),true)];
-    }
+    $userIdToken = $payload["userIdToken"];
 
     switch($args[1]){
       case "answer":
@@ -277,10 +270,16 @@ class QuestionsController
           return ["error" => [
             "type" => "invalid_param"
           ]];
-        }else{
-          return $this->updateAnswer((int)$args[0], (int)$payload["broadcast"], $payload["questionText"], $userId, $payload["answerText"], $payload["intentName"]);
         }
-        break;
+        $isProcessSucceeded = $this->questionsAppService->updateAnswerToQuestion($userIdToken, $questionIndex, $payload["broadcast"], $payload["questionText"], $payload["answerText"], $payload["intentName"]);
+        $this->code = $isProcessSucceeded ? 201 : 200;
+        return [
+          "index" => $questionIndex,
+          "broadcast" => $payload["broadcast"],
+          "questionText" => $payload["questionText"],
+          "answerText" => $payload["answerText"],
+          "intentName" => $payload["intentName"]
+        ];
 
       // 無効なアクセス
       default:

@@ -70,6 +70,34 @@ class QuestionsAppService {
   }
 
   /**
+   * 質問に対する回答情報を更新する
+   * @param string $userIdToken 回答者のユーザIDトークン
+   * @param int $questionIndex 更新する質疑応答情報のインデックス
+   * @param int $broadcast 1:全体通知/0:個別通知
+   * @param string $questionText 修正後の質問文
+   * @param string $answerText 質問に対する応答文
+   * @param string $intentName Dialogflowに登録されているインテント名(Format: projects/<Project ID>/agent/intents/<Intent ID>)
+   */
+  public function updateAnswerToQuestion($userIdToken, $questionIndex, $broadcast, $questionText, $answerText, $intentName) {
+    // ユーザIDを取得
+    $answererUserId = $this->userService->verifyLine($userIdToken)["sub"];
+
+    // 質問の存在確認
+    $question = $this->questionService->getSelectedQuestionData($questionIndex);
+    if(is_null($question)){
+      throw new NotFoundException("指定された質問が見つかりませんでした", ["selectIndex" => $questionIndex]);
+    }
+
+    // 質問文の修正
+    $question->updateQuestion($questionText);
+    // 回答文の設定
+    $question->setAnswer($answerText, $broadcast, $intentName, $answererUserId);
+
+    // 質問情報の更新
+    return $this->questionService->updateQuestion($question);
+  }
+
+  /**
    * 質問閲覧時の記録とユーザと質問の関連付け
    * @param int $questionIndex 質問のインデックス
    * @param string $userIdToken ユーザIDトークン
@@ -104,7 +132,7 @@ class QuestionsAppService {
   public function checkIsYourQuestion($questionIndex, $userIdToken) {
     // ユーザIDを取得
     $userId = $this->userService->verifyLine($userIdToken)["sub"];
-    
+
     $isQuestionByUser = $this->questionService->isQuestionByUser($questionIndex, $userId);
     return ["isQuestioner" => $isQuestionByUser];
   }

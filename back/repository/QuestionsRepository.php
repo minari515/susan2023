@@ -108,6 +108,52 @@ class QuestionRepository {
   }
 
   /**
+   * 質問情報を更新する
+   * @param int $questionIndex 質問のインデックス
+   * @param int $broadcast 1:全体通知/0:個別通知
+   * @param string $questionText 修正後の質問文
+   * @param string $answerText 質問に対する応答文
+   * @param string $intentName Dialogflowインテント名
+   * @param string $respondentId 回答者のユーザID
+   * @return array 更新された質問情報
+   */
+  public function updateQuestion($questionIndex, $broadcast, $questionText, $answerText, $intentName, $respondentId) {
+    try{
+      // mysqlの実行文
+      $stmt = $this->db ->pdo() -> prepare(
+        "UPDATE `Questions`
+        SET `broadcast` = :broadcast,
+            `questionText` = :questionText,
+            `answerText` = :answerText,
+            `respondentId` = :respondentId,
+            `intentName` = :intentName
+        WHERE `Questions`.`index` = :questionIndex"
+      );
+      //データの紐付け
+      $stmt->bindValue(':questionIndex', $questionIndex, PDO::PARAM_INT);
+      $stmt->bindValue(':broadcast', $broadcast, PDO::PARAM_INT);
+      $stmt->bindValue(':questionText', $questionText, PDO::PARAM_STR);
+      $stmt->bindValue(':answerText', $answerText, PDO::PARAM_STR);
+      $stmt->bindValue(':respondentId', $respondentId, PDO::PARAM_STR);
+      $stmt->bindValue(':intentName', $intentName, PDO::PARAM_STR);
+      
+      // 実行
+      $res = $stmt->execute();
+      if($res){
+        return true;
+      }else{
+        throw new Exception("PDOの実行に失敗しました");
+      }
+
+    } catch(PDOException $error){
+      return ["error" => [
+        "type" => "pdo_exception",
+        "message" => $error
+      ]];
+    }
+  }
+
+  /**
    * 指定インデックスの質問が特定のユーザによるものかを確認する
    * @param int $index 質問のインデックス
    * @param string $userId ユーザID

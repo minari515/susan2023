@@ -91,6 +91,22 @@ class QuestionService {
   }
 
   /**
+   * 質問情報を更新する
+   * @param QuestionEntity $question 質問情報
+   */
+  public function updateQuestion($question) {
+    $isSuccess = $this->questionRepository->updateQuestion(
+      $question->getIndex(), 
+      $question->getBroadcast(), 
+      $question->getQuestionText(), 
+      $question->getAnswerText(),
+      $question->getIntentName(),
+      $question->getRespondentId()
+    );
+    return $isSuccess;
+  }
+
+  /**
    * 指定の質問がユーザ自身が投稿した質問であるか確認
    * @param int $questionIndex 質問のインデックス
    * @param string $userId ユーザID
