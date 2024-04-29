@@ -33,7 +33,9 @@ class QuestionService {
         $question["questionText"],
         $question["answerText"],
         $question["broadcast"],
-        $question["intentName"]
+        $question["intentName"],
+        null,
+        null
       );
     }
 
@@ -58,7 +60,9 @@ class QuestionService {
       $data["questionText"],
       $data["answerText"],
       $data["broadcast"],
-      $data["intentName"]
+      $data["intentName"],
+      null,
+      null
     );
 
     return $question;
@@ -79,6 +83,8 @@ class QuestionService {
       $questionText,
       null,
       0,
+      null,
+      null,
       null
     );
     return $savedQuestion;

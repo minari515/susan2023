@@ -31,8 +31,16 @@ class QuestionEntity {
    * @var string Dialogflowインテント名
    */
   public $intentName;
+  /**
+   * @var string 質問者のユーザID
+   */
+  private $questionerId;
+  /**
+   * @var string 回答者のユーザID
+   */
+  private $respondentId;
 
-  public function __construct($index, $timestamp, $lectureNumber, $questionText, $answerText, $broadcast, $intentName) {
+  public function __construct($index, $timestamp, $lectureNumber, $questionText, $answerText, $broadcast, $intentName, $questionerId, $respondentId) {
     $this->index = $index;
     $this->timestamp = $timestamp;
     $this->lectureNumber = $lectureNumber;
@@ -40,6 +48,8 @@ class QuestionEntity {
     $this->answerText = $answerText;
     $this->broadcast = (bool)$broadcast;
     $this->intentName = $intentName;
+    $this->questionerId = $questionerId;
+    $this->respondentId = $respondentId;
   }
 
   public function getIndex() {
@@ -68,6 +78,25 @@ class QuestionEntity {
 
   public function getIntentName() {
     return $this->intentName;
+  }
+
+  public function getQuestionerId() {
+    return $this->questionerId;
+  }
+
+  public function getRespondentId() {
+    return $this->respondentId;
+  }
+
+  public function updateQuestion($questionText) {
+    $this->questionText = $questionText;
+  }
+
+  public function setAnswer($answerText, $broadcast, $intentName, $respondentId) {
+    $this->answerText = $answerText;
+    $this->broadcast = (bool)$broadcast;
+    $this->intentName = $intentName;
+    $this->respondentId = $respondentId;
   }
 
 }
