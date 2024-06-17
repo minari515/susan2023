@@ -9,4 +9,5 @@ tunnels:
     inspect: false
 # regionをJapanに変更
 region: jp
-authtoken: 2OSVyBxKGYk2ez18rk6O5Q5CMAY_5c2Q7B51fvh4RxGZ4YK26
+# authtoken: 2OSVyBxKGYk2ez18rk6O5Q5CMAY_5c2Q7B51fvh4RxGZ4YK26
+authtoken: 2XvXiH72eikFNV4dNx3oaxYsdqs_5NSurtAhcx5MqMyYLoRBy # 研究室用
