@@ -1,175 +1,74 @@
 <?php
 // ini_set('display_errors',1);
 
+require(dirname( __FILE__)."../../../../app_service/QuestionsAppService.php");
+
 class QuestionsController
 {
   public $code = 200;
   public $url;
   public $request_body;
 
+  private $questionsAppService;
+
   function __construct()
   {
     $this->url = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://').$_SERVER['HTTP_HOST'].mb_substr($_SERVER['SCRIPT_NAME'],0,-9).basename(__FILE__, ".php")."/";
     $this->request_body = json_decode(mb_convert_encoding(file_get_contents('php://input'),"UTF8","ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN"),true);
+
+    $this->questionsAppService = new QuestionsAppService();
   }
 
   /**************************************************************************** */
   /**
    * GETメソッド
-   * @param array $args
+   * @param array $pathParams `api/v2/questions/{pathParams[0]}/{pathParams[1]}/...`
    * @return array レスポンス
    */
-  public function get($args) {
-    switch($args[0]){
-      // 指定のインデックスから最新30件の質疑応答情報を取得
-      case "list":
-        return $this->getQuestionsData($_GET['startIndex']);
-        break;
-      
-      // 指定のインデックスの質疑応答情報を1件取得
-      case is_numeric($args[0]):
-        return $this->getSelectedQuestionData($args[0]);
-        break;
-      
-      // 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
-      case "latest":
-        return $this->getLatestQuestionsData();
-        break;
-
-      // 無効なアクセス
-      default:
-        $this -> code = 400;
-        return ["error" => [
-          "type" => "invalid_access"
-        ]];
-    }
-  }
-
-  /**
-   * 指定のインデックスを起点に最新30件の質疑応答情報を取得する
-   * TODO: LINEbotから呼び出せるようにpublicだが，privateにしておきたい
-   * @param int $startIndex 質疑応答情報のインデックス
-   * @return array 質問データ
-   */
-  public function getQuestionsData($startIndex) {
-    if($startIndex == 0) $startIndex = 99999;
-    $db = new DB();
-
+  public function get($pathParams) {
     try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        WHERE `index` < :startIndex
-        ORDER BY `Questions`.`index` DESC
-        LIMIT 30"
-      );
-      //データの紐付け
-      $stmt->bindValue(':startIndex', $startIndex, PDO::PARAM_INT);
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        //$questions = $stmt->fetchAll(PDO::FETCH_ASSOC|PDO::FETCH_UNIQUE);
-        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach($questions as $key => $question){
-          $questions[$key]["broadcast"] = (bool)$question["broadcast"];
-        }
-        return $questions;
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
+      switch($pathParams[0]){
+        // 指定のインデックスから最新30件の質疑応答情報を取得
+        case "list":
+          $startIndex = $_GET['startIndex'] == 0 ? 99999 : $_GET['startIndex'];
+          return $this->questionsAppService->getQuestionsFrom($startIndex);
+        
+        // 指定のインデックスの質疑応答情報を1件取得
+        case is_numeric($pathParams[0]):
+          $selectIndex = (int)$pathParams[0];
+          return $this->questionsAppService->getSelectedQuestion($selectIndex);
+        
+        // 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
+        case "latest":
+          return $this->questionsAppService->getLatestQuestions();
 
-    } catch(PDOException $error){
-      $this -> code = 500;
-      return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
-      ]];
-    }
-  }
-
-  /**
-   * 指定のインデックスの質疑応答情報を取得する
-   * @param int $index 質疑応答情報のインデックス
-   */
-  private function getSelectedQuestionData($index) {
-    $db = new DB();
-
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        WHERE `index` = :QuestionIndex"
-      );
-      //データの紐付け
-      $stmt->bindValue(':QuestionIndex', $index, PDO::PARAM_INT);
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        $question = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if(!empty($question)){
-          $question[0]["broadcast"] = (bool)$question[0]["broadcast"];
-          return $question[0];
-        }else{ //指定したインデックスの質問が存在しない場合
-          $this->code = 404;
+        // 無効なアクセス
+        default:
+          $this -> code = 400;
           return ["error" => [
-            "type" => "not_in_sample"
+            "type" => "invalid_access"
           ]];
-        }
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
       }
-    } catch(PDOException $error){
-      $this -> code = 500;
+    }catch(NotFoundException $error){
+      $this->code = $error->getCode();
       return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
+        "type" => "not_found_exception",
+        "message" => json_decode($error->getMessage(), true),
+        "info" => $error->getSource()
       ]];
-    }
-  }
 
-  /**
-   * 最新質問5件を取得(チャットボットの「みんなの質問を見せて」返答用)
-   * @return array 質問データ
-   */
-  private function getLatestQuestionsData(){
-    $db = new DB();
-    try{
-      // mysqlの実行文
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
-        FROM `Questions`
-        ORDER BY `Questions`.`index` DESC
-        LIMIT 5"
-      );
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        //$questions = $stmt->fetchAll(PDO::FETCH_ASSOC|PDO::FETCH_UNIQUE);
-        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $questions;
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-
-    } catch(PDOException $error){
-      $this -> code = 500;
+    }catch(PDOException $error){
+      $this->code = 500;
       return ["error" => [
         "type" => "pdo_exception",
-        "message" => $error
+        "message" => json_decode($error, true)
+      ]];
+
+    }catch(Exception $error){
+      $this->code = 500;
+      return ["error" => [
+        "type" => "unknown_exception",
+        "message" => json_decode($error, true)
       ]];
     }
   }
@@ -177,257 +76,81 @@ class QuestionsController
   /**************************************************************************** */
   /**
    * POSTメソッド
-   * @param array $args 追加情報のタイプ
+   * @param array $pathParams `api/v2/questions/{pathParams[0]}/{pathParams[1]}/...`
    * @return array レスポンス
    */
-  public function post($args) {
+  public function post($pathParams) {
     $post = $this->request_body;
-    // TODO: userIdTokenのチェック方法を検討
-    switch($args[0]){
-      case "newQuestion": // チャットボットから新規質問登録するときはuserIdTokenが取得できない
-        break;
-      //case "view_log":
-      //case "isYourQuestion":
-      default:
-        if(!array_key_exists("userIdToken",$post)){
-          $this->code = 400;
-          return ["error" => [
-            "type" => "user token is required"
-          ]];
-        }
-        // ユーザーの存在確認
-        include("users.php");
-        $usersController = new UsersController();
-        try{
-          $userId = $usersController->verifyLine($post["userIdToken"])["sub"];
-        }catch(Exception $error){
-          $this->code = $error->getCode();
-          return ["error" => json_decode($error->getMessage(),true)];
-        }
-        break;
-    }
     
-    switch($args[0]){
-      // 閲覧ログを記録する
-      case "view_log":
-        if(!is_numeric($args[1])){
-          $this->code = 400;
-          return ["error" => [
-            "type" => "invalid_param"
-          ]];
-        }
-        try{
-          $recordStatus = $this->insertViewingLog($userId, (int) $args[1])["status"];
-          $res["isYourQuestion"] = $this->checkIsYourQuestion((int) $args[1], $userId)["isQuestioner"];
-          $res["isAssigner"] = $res["isYourQuestion"] ? false : $this->checkIsAssigner((int) $args[1], $userId)["isAssigner"];
-          $this->code = $recordStatus;
+    try{
+      switch($pathParams[0]){
+        // 閲覧ログを記録する
+        case "view_log":
+          if(!is_numeric($pathParams[1]) || !array_key_exists("userIdToken",$post)){
+            $this->code = 400;
+            return ["error" => [
+              "type" => "invalid_param",
+              "info" => "questionIndex: ".$pathParams[1].", userIdToken: ".is_null($post["userIdToken"]) 
+            ]];
+          }
+          $viewedQuestionIndex = (int) $pathParams[1];
+          $viewerIdToken = $post["userIdToken"];
+          
+          $res = $this->questionsAppService->recordQuestionView($viewedQuestionIndex, $viewerIdToken);
+          $this->code = 201;
           return $res;
-        }catch(Exception $error){
-          $this->code = json_decode($error->getMessage())->status;
-          return ["error" => json_decode($error->getMessage(),true)];
-        }
-        break;
-      
-      // 質問者とユーザが一致するか
-      case "isYourQuestion":
-        if(!is_numeric($args[1])){
-          $this->code = 400;
-          return ["error" => [
-            "type" => "invalid_param"
-          ]];
-        }else{
-          return $this->checkIsYourQuestion((int) $args[1], $userId);
-        }
-        break;
-
-      case "newQuestion":
-        if(!array_key_exists("userId",$post) || 
-          !array_key_exists("lectureNumber",$post) ||
-          !array_key_exists("questionText",$post)
-        ){
-          $this->code = 400;
-          return ["error" => [
-            "type" => "invalid_param"
-          ]];
-        }
         
-        $resInsert = $this->insertQuestionData($post["userId"], $post["lectureNumber"], $post["questionText"]);
-        if(!array_key_exists("questionIndex", $resInsert)){
-          $this->code = 500;
-          return ["error" => $resInsert];
-        }
-        include("users.php");
-        $usersController = new UsersController();
-        $resAssign = $usersController->assignStudentAnswerer($post["userId"], $resInsert["questionIndex"]);
-        if(!array_key_exists("assignedStudents", $resAssign)){
-          $this->code = 500;
-          return ["error" => $resAssign];
-        }
+        // 質問者とユーザが一致するか
+        case "isYourQuestion":
+          if(!is_numeric($pathParams[1]) || !array_key_exists("userIdToken",$post)){
+            $this->code = 400;
+            return ["error" => [
+              "type" => "invalid_param",
+              "info" => "questionIndex: ".$pathParams[1].", userIdToken: ".is_null($post["userIdToken"]) 
+            ]];
+          }
 
-        return [
-          "questionIndex" => $resInsert["questionIndex"], 
-          "assignedStudents" => $resAssign["assignedStudents"]
-        ];
-        break;
+          $questionIndex = (int) $pathParams[1];
+          $userIdToken = $post["userIdToken"];
+          return $this->questionsAppService->checkIsYourQuestion($questionIndex, $userIdToken);
 
-      // 無効なアクセス
-      default:
-        $this -> code = 400;
-        return ["error" => [
-          "type" => "invalid_access"
-        ]];
-    }
-  }
+        case "newQuestion":
+          if(!array_key_exists("userId",$post) || 
+            !array_key_exists("lectureNumber",$post) ||
+            !array_key_exists("questionText",$post)
+          ){
+            $this->code = 400;
+            return ["error" => [
+              "type" => "invalid_param"
+            ]];
+          }
+          
+          $response = $this->questionsAppService->postQuestion($post["userId"], $post["lectureNumber"], $post["questionText"]);
+          $this->code = 201;
+          return $response;
 
-  /**
-   * 質疑LIFFページの閲覧ログの追加
-   * @param string $lineId ユーザのLINE固有id
-   * @param int $questionIndex 閲覧した質疑応答情報のインデックス
-   * @return array DB追加の成功/失敗
-   */
-  private function insertViewingLog($lineId, $questionIndex) {
-    $db = new DB();
-    $pdo = $db -> pdo();
-
-    try{
-      // mysqlの実行文の記述
-      // 指定されたインデックスの質問が存在しない場合はMySQL#1048エラー
-      $stmt = $pdo -> prepare(
-        "INSERT INTO PageViewHistories (userUid, questionIndex, isQuestionerViewing)
-        VALUES (
-          :userUid,
-          (SELECT `index` FROM `Questions` WHERE `index` = :questionIndex), 
-          (SELECT COUNT(*) FROM `Questions` WHERE `index`=:qIndex AND `questionerId` = :questionerId LIMIT 1)
-        )"
-      );
-      //データの紐付け
-      $stmt->bindValue(':userUid', $lineId, PDO::PARAM_STR);
-      $stmt->bindValue(':questionIndex', $questionIndex, PDO::PARAM_INT);
-      $stmt->bindValue(':qIndex', $questionIndex, PDO::PARAM_INT);
-      $stmt->bindValue(':questionerId', $lineId, PDO::PARAM_STR);
-      
-      // 実行
-      $res = $stmt->execute();
-      $lastIndex = $pdo->lastInsertId();
-      if($res){
-        $this->code = 201;
-        //header("Location: ".$this->url.$lastIndex);
-        return [
-          "result" => "success",
-          "status" => 201
-        ];
-      }else{
-        throw new ErrorException(json_encode([
-          "error" => [
-            "type" => "pdo_not_response"
-          ],
-          "status" => 500
-        ]));
+        // 無効なアクセス
+        default:
+          $this -> code = 400;
+          return ["error" => [
+            "type" => "invalid_access"
+          ]];
       }
 
-    } catch(PDOException $error){
-      throw new PDOException(json_encode([
-          "error" => [
-            "type" => "pdo_exception",
-            "message" => $error->getMessage()
-          ],
-          "status" => 500
-        ]));
-    } catch(Exception $error){
-      if(json_decode($error->getMessage())->error->type == "pdo_not_response"){
-        throw $error;
-      }else{
-        throw new ErrorException(json_encode([
-            "error" => [
-              "type" => "unknown_exception",
-              "message" => $error->getMessage()
-            ],
-            "status" => 500
-          ]));
-      }
-    }
-  }
-
-  /**
-   * 質問がアクセスしたユーザが投稿したものかチェックする
-   * @param int $index 質問のインデックス
-   * @param string $lineId ユーザID
-   * @return array
-   */
-  private function checkIsYourQuestion($index, $lineId){
-    $db = new DB();
-  
-    try{
-      // mysqlの実行文(テーブルに指定のLINE IDが存在するかのみチェック)
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT COUNT(*) 
-        FROM `Questions` 
-        WHERE `index`=:questionIndex AND `questionerId` = :questionerId LIMIT 1"
-      );
-      $stmt->bindValue(':questionIndex', $index, PDO::PARAM_STR);
-      $stmt->bindValue(':questionerId', $lineId, PDO::PARAM_STR);
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        return ["isQuestioner" => $stmt->fetchColumn() > 0];
-      
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-  
-    } catch(PDOException $error){
-      $this -> code = 500;
+    }catch(PDOException $error){
+      $this->code = 500;
       return ["error" => [
         "type" => "pdo_exception",
-        "message" => $error
+        "message" => json_decode($error, true)
       ]];
-    }
-    return [];
-  }
 
-  /**
-   * ユーザが質問の回答者に割り振られているか確認する
-   * @param int $index 質問のインデックス
-   * @param string $lineId ユーザID
-   * @return array
-   */
-  private function checkIsAssigner($index, $lineId){
-    $db = new DB();
-  
-    try{
-      // mysqlの実行文(テーブルに指定のLINE IDが存在するかのみチェック)
-      $stmt = $db -> pdo() -> prepare(
-        "SELECT COUNT(*) 
-        FROM `Assignments` 
-        WHERE `questionIndex`=:questionIndex AND `userUid` = :userUid LIMIT 1"
-      );
-      $stmt->bindValue(':questionIndex', $index, PDO::PARAM_INT);
-      $stmt->bindValue(':userUid', $lineId, PDO::PARAM_STR);
-      // 実行
-      $res = $stmt->execute();
-  
-      if($res){
-        return ["isAssigner" => $stmt->fetchColumn() > 0];
-      
-      }else{
-        $this -> code = 500;
-        return ["error" => [
-          "type" => "pdo_not_response"
-        ]];
-      }
-  
-    } catch(PDOException $error){
-      $this -> code = 500;
+    }catch(Exception $error){
+      $this->code = 500;
       return ["error" => [
-        "type" => "pdo_exception",
-        "message" => $error
+        "type" => "unknown_exception",
+        "message" => json_decode($error, true)
       ]];
     }
-    return [];
   }
 
   /**
@@ -525,6 +248,7 @@ class QuestionsController
         "type" => "invalid_url"
       ]];
     }
+    $questionIndex = $args[0];
     $payload = $this->request_body;
 
     if(!array_key_exists("userIdToken",$payload)){
@@ -533,15 +257,7 @@ class QuestionsController
         "type" => "user token is required"
       ]];
     }
-    // ユーザーの存在確認
-    include("users.php");
-    $usersController = new UsersController();
-    try{
-      $userId = $usersController->verifyLine($payload["userIdToken"])["sub"];
-    }catch(Exception $error){
-      $this->code = $error->getCode();
-      return ["error" => json_decode($error->getMessage(),true)];
-    }
+    $userIdToken = $payload["userIdToken"];
 
     switch($args[1]){
       case "answer":
@@ -554,10 +270,16 @@ class QuestionsController
           return ["error" => [
             "type" => "invalid_param"
           ]];
-        }else{
-          return $this->updateAnswer((int)$args[0], (int)$payload["broadcast"], $payload["questionText"], $userId, $payload["answerText"], $payload["intentName"]);
         }
-        break;
+        $isProcessSucceeded = $this->questionsAppService->updateAnswerToQuestion($userIdToken, $questionIndex, $payload["broadcast"], $payload["questionText"], $payload["answerText"], $payload["intentName"]);
+        $this->code = $isProcessSucceeded ? 201 : 200;
+        return [
+          "index" => $questionIndex,
+          "broadcast" => $payload["broadcast"],
+          "questionText" => $payload["questionText"],
+          "answerText" => $payload["answerText"],
+          "intentName" => $payload["intentName"]
+        ];
 
       // 無効なアクセス
       default:

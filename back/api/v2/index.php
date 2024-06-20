@@ -7,6 +7,7 @@
 // header("Access-Control-Allow-Origin: *"); //開発用
 header("Access-Control-Allow-Origin: http://localhost:3000"); //開発用
 
+// TODO: ↓ここでdatabase.phpを読み込んでいるが，databaseの連携はrepository層のみで必要になるため、ここでは呼び出さないようにする
 include(dirname( __FILE__)."/../database.php");
 
 // URL(REQUEST_URI)と「このindex.phpがあるディレクトリのパス」を比較
