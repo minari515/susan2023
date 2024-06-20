@@ -84,6 +84,19 @@ services:
     # environment:
       # NGROK_AUTH: ${NGROK_AUTH_TOKEN}
     # command: ["ngrok", "http", "back:80", "--authtoken", "${NGROK_AUTH_TOKEN}"]
+  
+  # 管理者用ツールのコンテナ
+  admin:
+    container_name: susan_admin
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    tty: true
+    volumes:
+      - ./admin:/web/susan_admin
+    ports:
+      - 3001:3001
+
 
 volumes:
   node_modules_volume:
