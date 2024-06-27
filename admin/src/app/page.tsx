@@ -12,7 +12,6 @@ const HomePage = () => {
   const [selection, setSelection] = useState<string | null>(null);
   const [events, setEvents] = useState<{ start: string; end: string; index: number}[]>([]);
   const [startDate, setStartDate] = useState<string | null>(null);
-  const [counter, setCounter] = useState<number>(1); // カウンターの初期値を設定
 
   const handleSelectionChange = (value: string) => {
     setSelection(value);
@@ -25,7 +24,7 @@ const HomePage = () => {
       const newEvent = {
         start: startDate,
         end: clickedDate,
-        index: events.length + counter, // カウンターの値をインクリメント
+        index: (events.length % 8) + 1,
       };
       setEvents((prevEvents) => [...prevEvents, newEvent]);
       setStartDate(null);
