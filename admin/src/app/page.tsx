@@ -10,7 +10,7 @@ import styles from './Home.module.css';
 
 const HomePage = () => {
   const [selection, setSelection] = useState<string | null>(null);
-  const [events, setEvents] = useState<{ start: string; end: string }[]>([]);
+  const [events, setEvents] = useState<{ start: string; end: string; index: number}[]>([]);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [counter, setCounter] = useState<number>(1); // カウンターの初期値を設定
 
@@ -25,6 +25,7 @@ const HomePage = () => {
       const newEvent = {
         start: startDate,
         end: clickedDate,
+        index: events.length + counter, // カウンターの値をインクリメント
       };
       setEvents((prevEvents) => [...prevEvents, newEvent]);
       setStartDate(null);
@@ -37,7 +38,11 @@ const HomePage = () => {
     if (selection && events.length > 0) {
       const data = {
         selection,
-        periods: events,
+        periods: events.map(event => ({
+          start: event.start,
+          end: event.end,
+          index: event.index,
+        })),
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       saveAs(blob, 'data.json');
@@ -73,8 +78,8 @@ const HomePage = () => {
           initialView="dayGridMonth"
           selectable={true}
           dateClick={handleDateClick}
-          events={events.map((event, index) => ({
-            title: `第${index + counter}回`,
+          events={events.map((event) => ({
+            title: `第${event.index}回`,
             start: event.start,
             end: new Date(new Date(event.end).getTime() + 86400000).toISOString().split('T')[0],
             allDay: true,
