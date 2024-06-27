@@ -59,14 +59,14 @@ const HomePage = () => {
       <h1>Data Selection</h1>
       <div className={styles.selectionButtons}>
         <button
-          className={selection === '誘い' ? styles.selectedButton : ''}
-          onClick={() => handleSelectionChange('誘い')}
+          className={selection === 'Invitation' ? styles.selectedButton : ''}
+          onClick={() => handleSelectionChange('Invitation')}
         >
           誘い
         </button>
         <button
-          className={selection === '入門' ? styles.selectedButton : ''}
-          onClick={() => handleSelectionChange('入門')}
+          className={selection === 'Introduction' ? styles.selectedButton : ''}
+          onClick={() => handleSelectionChange('Introduction')}
         >
           入門
         </button>
