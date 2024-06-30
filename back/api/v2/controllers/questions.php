@@ -60,7 +60,7 @@ class QuestionsController
       $stmt = $db -> pdo() -> prepare(
         "SELECT `index`,`timestamp`,`lectureNumber`,`questionText`,`answerText`,`broadcast`,`intentName`
         FROM `Questions`
-        WHERE `index` < :startIndex
+        WHERE `index` < :startIndex and is not 'hidden'
         ORDER BY `Questions`.`index` DESC
         LIMIT 30"
       );

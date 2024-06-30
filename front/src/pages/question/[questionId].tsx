@@ -25,6 +25,7 @@ const QuestionDetailsPage = () => {
 				userIdToken={user.token}
 				questionIndex={Number(questionId)}
 			>
+			{user?.type === "instructor" && <deleteQuestionButton />}
 				<QuestionTextDisplay />
 				<AnswerTextDisplay />
 				<DiscussionProvider
