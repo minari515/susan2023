@@ -102,24 +102,34 @@ class BotController
   private function webhook($requestBody, $signature)
   {
     $response = null;
+    
+    // dataディレクトリからJSONファイル読み込む
+    $dateData = file_get_contents(dirname(__FILE__) . "/../data/data.json");
+    // JSONファイルをデコード
+    $dateData = json_decode($dateData, true);
 
-    // 授業が第何回であるかの変数
-    // 初期日付を設定
-    $startDate = new DateTime('2024-04-05');
-
+    
     // 現在の日付を取得
-    $now = new DateTime();
+    $now = new DateTime('2024-10-27');
     
-    // 2つの日付の差を計算
-    $interval = $startDate->diff($now);
+    // 授業データを取得
+    $type = $dateData['selection'];
     
-    // 差を週数に変換．floor関数で小数点以下を切り捨て
-    // 1週間経過していても1週間とカウントされるように+1
-    // 週がずれる場合は+1を削除して調整
-    $weeksPassed = floor($interval->days / 7) + 1;
-
-    // 授業タイプ（Introduction or Invitation）
-    $type = "Invitation";
+    // 現在の日付が期間の範囲内にあるかを確認
+    foreach ($dateData['periods'] as $period) {
+      $startDate = new DateTime($period['start']);
+      $endDate = new DateTime($period['end']);
+      
+      // 現在の日付が期間の範囲内にあるかを確認
+      if ($now >= $startDate && $now <= $endDate) {
+        $matchedIndex = $period['index'];
+        break;
+      }
+    }
+    // どこにもマッチしなかった場合
+    if (!isset($matchedIndex)) {
+      $matchedIndex = 0;
+    }
 
     try {
       // LINEBotが受信したイベントオブジェクトを受け取る
@@ -241,7 +251,6 @@ class BotController
     // 手動で設定
     $lifespanCount = "2"; //適当に設定してる
     $lineController = new LineController();
-
     $replyMessages = new MultiMessageBuilder();
 
     // メッセージの取得
