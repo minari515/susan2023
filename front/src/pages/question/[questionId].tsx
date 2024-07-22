@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import { useContext } from "react";
 import DefaultLayout from "@/layouts/Default";
 import Loader from "@/components/Loader";
+import DeleteQuestionButton from "@/components/DeleteQuestionButton";
 
 /**
  * @returns 質問詳細ページ
@@ -25,7 +26,7 @@ const QuestionDetailsPage = () => {
 				userIdToken={user.token}
 				questionIndex={Number(questionId)}
 			>
-			{user?.type === "instructor" && <deleteQuestionButton />}
+			{user?.type === "instructor" && <DeleteQuestionButton />}
 				<QuestionTextDisplay />
 				<AnswerTextDisplay />
 				<DiscussionProvider
